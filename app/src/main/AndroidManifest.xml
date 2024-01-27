@@ -36,9 +36,9 @@
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview"
                 android:resource="@drawable/watch_preview" />
-            <meta-data
+            <!--meta-data
                 android:name="com.google.android.wearable.watchface.wearableConfigurationAction"
-                android:value="androidx.wear.watchface.editor.action.WATCH_FACE_EDITOR" />
+                android:value="androidx.wear.watchface.editor.action.WATCH_FACE_EDITOR" /-->
             <meta-data
                 android:name="com.google.android.wearable.watchface.companionBuiltinConfigurationEnabled"
                 android:value="true" />
@@ -56,7 +56,7 @@
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
 
-        <activity
+        <!--activity
             android:name=".editor.WatchFaceConfigActivity"
             android:exported="true"
             android:label="@string/title_activity_watch_face_config"
@@ -69,7 +69,7 @@
                 <category android:name="com.google.android.wearable.watchface.category.WEARABLE_CONFIGURATION" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>
+        </activity-->
     </application>
 
 </manifest>
