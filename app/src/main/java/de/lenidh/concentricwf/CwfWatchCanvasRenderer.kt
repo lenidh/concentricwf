@@ -88,6 +88,7 @@ class CwfWatchCanvasRenderer(
     private val hourTextPaint = Paint().apply {
         isAntiAlias = true
         textSize = 32F
+        textAlign = Paint.Align.CENTER
         typeface = context.resources.getFont(R.font.rubik_regular)
         color = context.resources.getColor(R.color.hour_default, null)
     }
@@ -95,6 +96,7 @@ class CwfWatchCanvasRenderer(
     private val minuteTextPaint = Paint().apply {
         isAntiAlias = true
         textSize = 18F
+        textAlign = Paint.Align.CENTER
         typeface = context.resources.getFont(R.font.rubik_regular)
         color = context.resources.getColor(R.color.minute_default, null)
     }
@@ -120,12 +122,6 @@ class CwfWatchCanvasRenderer(
         color = context.resources.getColor(R.color.seconds_default, null)
     }
 
-    private lateinit var hourHandFill: Path
-    private lateinit var hourHandBorder: Path
-    private lateinit var minuteHandFill: Path
-    private lateinit var minuteHandBorder: Path
-    private lateinit var secondHand: Path
-
     private var largeIndexLength = 0
     private var largeIndexWidth = 0
     private var smallIndexLength = 0
@@ -134,6 +130,9 @@ class CwfWatchCanvasRenderer(
     private var minutesTextPadding = 0
     private var secondsIndexPadding = 0
     private var secondsTextPadding = 0
+
+    private var minuteCenterX = 0F
+    private var minuteCenterY = 0F
 
     // Changed when setting changes cause a change in the minute hand arm (triggered by user in
     // updateUserStyle() via userStyleRepository.addUserStyleListener()).
@@ -266,6 +265,13 @@ class CwfWatchCanvasRenderer(
         minuteTextPaint.textSize = bounds.width() * MINUTE_TEXT_SIZE_FRACTION
         minutesTextPaint.textSize = bounds.width() * MINUTES_TEXT_SIZE_FRACTION
         secondsTextPaint.textSize = bounds.width() * SECONDS_TEXT_SIZE_FRACTION
+
+        val minuteRefPath = Path()
+        minuteTextPaint.getTextPath("00", 0, 2, 0F, 0F, minuteRefPath)
+        val minuteRefTextBounds = RectF()
+        minuteRefPath.computeBounds(minuteRefTextBounds, true)
+        minuteCenterX = bounds.right - minutesTextPadding - minuteRefTextBounds.width() / 2F
+        minuteCenterY = bounds.exactCenterY()
     }
 
     override fun render(
@@ -274,7 +280,7 @@ class CwfWatchCanvasRenderer(
         if (currentWatchFaceSize != bounds) {
             recalculateDimensions(bounds)
         }
-        val isLowBitMode = renderParameters.drawMode != DrawMode.INTERACTIVE;
+        val isLowBitMode = renderParameters.drawMode != DrawMode.INTERACTIVE
 
         canvas.drawColor(Color.BLACK)
 
@@ -282,15 +288,12 @@ class CwfWatchCanvasRenderer(
             if (!isLowBitMode) {
                 drawRims(canvas, bounds, zonedDateTime)
             }
+            drawMinuteBorder(canvas, bounds, isLowBitMode)
             drawCurrentTime(canvas, bounds, zonedDateTime)
         }
 
         // CanvasComplicationDrawable already obeys rendererParameters.
         drawComplications(canvas, zonedDateTime)
-
-        if (renderParameters.watchFaceLayers.contains(WatchFaceLayer.COMPLICATIONS_OVERLAY)) {
-            //drawClockHands(canvas, bounds, zonedDateTime)
-        }
     }
 
     // ----- All drawing functions -----
@@ -305,42 +308,44 @@ class CwfWatchCanvasRenderer(
     private fun drawCurrentTime(
         canvas: Canvas, bounds: Rect, zonedDateTime: ZonedDateTime
     ) {
-        val hourOfDay = zonedDateTime.toLocalTime().get(ChronoField.HOUR_OF_DAY);
+        val hourOfDay = zonedDateTime.toLocalTime().get(ChronoField.HOUR_OF_DAY)
+        val minuteOfHour = zonedDateTime.toLocalTime().get(ChronoField.MINUTE_OF_HOUR)
+
+        // HOUR
         val hourText = format2Digits(hourOfDay)
         val hourPath = Path()
         hourTextPaint.getTextPath(hourText, 0, hourText.length, 0F, 0F, hourPath)
         val hourTextBounds = RectF()
         hourPath.computeBounds(hourTextBounds, true)
-        val hourX = bounds.exactCenterX() - hourTextBounds.width() / 2F
+        val hourX = bounds.exactCenterX() // textAlign == CENTER => no horizontal offset required
         val hourY = bounds.exactCenterY() + hourTextBounds.height() / 2F
 
         canvas.withTranslation(hourX, hourY) {
             canvas.drawPath(hourPath, hourTextPaint)
         }
 
-        val minuteOfHour = zonedDateTime.toLocalTime().get(ChronoField.MINUTE_OF_HOUR);
+        // MINUTE
         val minuteText = format2Digits(minuteOfHour)
         val minutePath = Path()
+        minuteTextPaint.textAlign = Paint.Align.CENTER
         minuteTextPaint.getTextPath(minuteText, 0, minuteText.length, 0F, 0F, minutePath)
         val minuteTextBounds = RectF()
         minutePath.computeBounds(minuteTextBounds, true)
-        val minuteXOffset = -minuteTextBounds.width() / 2F
-        val minuteYOffset = minuteTextBounds.height() / 2F
+        val minuteX = minuteCenterX // textAlign == CENTER => no horizontal offset required
+        val minuteY = minuteCenterY + minuteTextBounds.height() / 2F
 
+        canvas.withTranslation(minuteX, minuteY) {
+            canvas.drawPath(minutePath, minuteTextPaint)
+        }
+    }
+
+    private fun drawMinuteBorder(canvas: Canvas, bounds: Rect, isLowBitMode: Boolean) {
         val fontMetrics = Paint.FontMetrics()
         minuteTextPaint.getFontMetrics(fontMetrics)
         val borderRadius = -fontMetrics.ascent
         val borderPath = Path()
-        borderPath.arcTo(
-            bounds.exactCenterX() + hourTextBounds.width(),
-            bounds.exactCenterY(),
-            borderRadius,
-            90F,
-            180F
-        )
-        borderPath.arcTo(
-            bounds.right.toFloat(), bounds.exactCenterY(), borderRadius, -90F, 180F
-        )
+        borderPath.arcTo(minuteCenterX - smallIndexLength, minuteCenterY, borderRadius, 90F, 180F)
+        borderPath.arcTo(if (isLowBitMode) minuteCenterX + smallIndexLength else bounds.right.toFloat(), minuteCenterY, borderRadius, -90F, 180F)
         borderPath.close()
 
         val bgPadding = minutesIndexPadding + largeIndexLength
@@ -356,25 +361,15 @@ class CwfWatchCanvasRenderer(
         val bgPaint = Paint()
         bgPaint.color = Color.BLACK
         bgPaint.style = Paint.Style.FILL
+
         canvas.drawPath(borderBg, bgPaint)
         canvas.drawPath(borderPath, minuteBorderPaint)
-
-        val tx =
-            bounds.right - (bounds.width() * MINUTES_TEXT_PADDING_FRACTION).toInt() - minuteTextBounds.width()
-        canvas.withTranslation(
-            tx, bounds.exactCenterY()
-        ) {
-            canvas.withTranslation(minuteXOffset, minuteYOffset) {
-                canvas.drawPath(minutePath, minuteTextPaint)
-            }
-        }
     }
 
     private fun drawRims(
         canvas: Canvas, bounds: Rect, zonedDateTime: ZonedDateTime
     ) {
         // Retrieve current time to calculate location/rotation of watch arms.
-        val secondOfDay = zonedDateTime.toLocalTime().toSecondOfDay()
         val millisOfDay = zonedDateTime.toLocalTime().get(ChronoField.MILLI_OF_DAY)
 
         // Determine the rotation of the hour and minute hand.
@@ -390,7 +385,7 @@ class CwfWatchCanvasRenderer(
         val minuteRotation = millisOfDay.rem(millisPerHour) * 360.0f / millisPerHour
 
         val minuteIndexRim =
-            IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength);
+            IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
         minuteIndexRim.draw(canvas, bounds, minutesIndexPadding, minuteRotation, indexPaint)
 
         val minuteNumberRim = NumberRim()
@@ -411,7 +406,7 @@ class CwfWatchCanvasRenderer(
             clockHandPaint.color = watchFaceColors.activeSecondaryColor
 
             val secondIndexRim =
-                IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength);
+                IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
             secondIndexRim.draw(canvas, bounds, secondsIndexPadding, secondsRotation, indexPaint)
 
             val secondNumberRim = NumberRim()
@@ -422,21 +417,15 @@ class CwfWatchCanvasRenderer(
     }
 
     companion object {
-        private const val TAG = "AnalogWatchCanvasRenderer"
-
-        // Painted between pips on watch face for hour marks.
-        private val HOUR_MARKS = arrayOf("3", "6", "9", "12")
-
-        // Used to canvas.scale() to scale watch hands in proper bounds. This will always be 1.0.
-        private const val WATCH_HAND_SCALE = 1.0f
+        private const val TAG = "CwfWatchCanvasRenderer"
 
         private const val SMALL_INDEX_WIDTH_FRACTION = 0.005F
         private const val SMALL_INDEX_LENGTH_FRACTION = 0.022F
         private const val LARGE_INDEX_WIDTH_FRACTION = 0.005F
         private const val LARGE_INDEX_LENGTH_FRACTION = 0.035F
-        private const val MINUTES_TEXT_PADDING_FRACTION = 0.155F
+        private const val MINUTES_TEXT_PADDING_FRACTION = 0.190F
         private const val MINUTES_INDEX_PADDING_FRACTION = 0.140F
-        private const val SECONDS_TEXT_PADDING_FRACTION = 0.020F
+        private const val SECONDS_TEXT_PADDING_FRACTION = 0.055F
         private const val SECONDS_INDEX_PADDING_FRACTION = 0.005F
         private const val HOUR_TEXT_SIZE_FRACTION = 0.211F
         private const val MINUTE_TEXT_SIZE_FRACTION = 0.079F
@@ -476,7 +465,7 @@ private class IndexRim(
 
         val m = Matrix()
 
-        val rim = Path();
+        val rim = Path()
         for (i in 0..59) {
             m.setRotate(360F / 60 * i, bounds.centerX().toFloat(), bounds.centerY().toFloat())
             if (i % 5 == 0) {
@@ -526,7 +515,7 @@ private class NumberRim {
             maxBound = maxOf(maxBound, textBounds.width(), textBounds.height())
         }
 
-        x = bounds.right - padding - maxBound
+        x = bounds.right - padding - maxBound / 2F
         y = bounds.exactCenterY()
     }
 
@@ -536,7 +525,7 @@ private class NumberRim {
         }
 
         for (i in RANGE) {
-            val numberRotation = rotation + 360F / LIMIT * i * STEP
+            val numberRotation = rotation + 360F / LIMIT * (LIMIT - i) * STEP
             canvas.withRotation(numberRotation, bounds.exactCenterX(), bounds.exactCenterY()) {
                 canvas.withTranslation(x, y) {
                     canvas.withRotation(-numberRotation) {
@@ -548,9 +537,9 @@ private class NumberRim {
     }
 
     companion object {
-        private const val STEP = 5;
-        private const val LIMIT = 60;
-        private val RANGE = 0 until LIMIT / STEP;
+        private const val STEP = 5
+        private const val LIMIT = 60
+        private val RANGE = 0 until LIMIT / STEP
     }
 }
 
