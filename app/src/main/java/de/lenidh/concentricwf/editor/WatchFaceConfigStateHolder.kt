@@ -27,17 +27,12 @@ import androidx.wear.watchface.style.UserStyle
 import androidx.wear.watchface.style.UserStyleSchema
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.WatchFaceLayer
-import de.lenidh.concentricwf.data.watchface.MINUTE_HAND_LENGTH_FRACTION_DEFAULT
-import de.lenidh.concentricwf.data.watchface.MINUTE_HAND_LENGTH_FRACTION_MAXIMUM
-import de.lenidh.concentricwf.data.watchface.MINUTE_HAND_LENGTH_FRACTION_MINIMUM
 import de.lenidh.concentricwf.utils.COLOR_STYLE_SETTING
 import de.lenidh.concentricwf.utils.COMPLICATION_1_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_2_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_3_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_4_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_5_ID
-import de.lenidh.concentricwf.utils.DRAW_HOUR_PIPS_STYLE_SETTING
-import de.lenidh.concentricwf.utils.WATCH_HAND_LENGTH_STYLE_SETTING
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -75,8 +70,6 @@ class WatchFaceConfigStateHolder(
 
     // Keys from Watch Face Data Structure
     private lateinit var colorStyleKey: UserStyleSetting.ListUserStyleSetting
-    private lateinit var drawPipsKey: UserStyleSetting.BooleanUserStyleSetting
-    private lateinit var minuteHandLengthKey: UserStyleSetting.DoubleRangeUserStyleSetting
 
     val uiState: StateFlow<EditWatchFaceUiState> =
         flow<EditWatchFaceUiState> {
@@ -111,16 +104,6 @@ class WatchFaceConfigStateHolder(
                 COLOR_STYLE_SETTING -> {
                     colorStyleKey = setting as UserStyleSetting.ListUserStyleSetting
                 }
-
-                DRAW_HOUR_PIPS_STYLE_SETTING -> {
-                    drawPipsKey = setting as UserStyleSetting.BooleanUserStyleSetting
-                }
-
-                WATCH_HAND_LENGTH_STYLE_SETTING -> {
-                    minuteHandLengthKey = setting as UserStyleSetting.DoubleRangeUserStyleSetting
-                }
-                // TODO (codingjeremy): Add complication change support if settings activity
-                // PR doesn't cover it. Otherwise, remove comment.
             }
         }
     }
@@ -150,18 +133,11 @@ class WatchFaceConfigStateHolder(
 
         val colorStyle =
             userStyle[colorStyleKey] as UserStyleSetting.ListUserStyleSetting.ListOption
-        val ticksEnabledStyle =
-            userStyle[drawPipsKey] as UserStyleSetting.BooleanUserStyleSetting.BooleanOption
-        val minuteHandStyle =
-            userStyle[minuteHandLengthKey]
-                as UserStyleSetting.DoubleRangeUserStyleSetting.DoubleRangeOption
 
-        Log.d(TAG, "/new values: $colorStyle, $ticksEnabledStyle, $minuteHandStyle")
+        Log.d(TAG, "/new values: $colorStyle")
 
         return UserStylesAndPreview(
             colorStyleId = colorStyle.id.toString(),
-            ticksEnabled = ticksEnabledStyle.value,
-            minuteHandLength = multiplyByMultipleForSlider(minuteHandStyle.value).toFloat(),
             previewImage = bitmap
         )
     }
@@ -214,22 +190,6 @@ class WatchFaceConfigStateHolder(
         }
     }
 
-    fun setDrawPips(enabled: Boolean) {
-        setUserStyleOption(
-            drawPipsKey,
-            UserStyleSetting.BooleanUserStyleSetting.BooleanOption.from(enabled)
-        )
-    }
-
-    fun setMinuteHandArmLength(newLengthRatio: Float) {
-        val newMinuteHandLengthRatio = newLengthRatio.toDouble() / MULTIPLE_FOR_SLIDER
-
-        setUserStyleOption(
-            minuteHandLengthKey,
-            UserStyleSetting.DoubleRangeUserStyleSetting.DoubleRangeOption(newMinuteHandLengthRatio)
-        )
-    }
-
     // Saves User Style Option change back to the back to the EditorSession.
     // Note: The UI widgets in the Activity that can trigger this method (through the 'set' methods)
     // will only be enabled after the EditorSession has been initialized.
@@ -257,28 +217,10 @@ class WatchFaceConfigStateHolder(
 
     data class UserStylesAndPreview(
         val colorStyleId: String,
-        val ticksEnabled: Boolean,
-        val minuteHandLength: Float,
         val previewImage: Bitmap
     )
 
     companion object {
         private const val TAG = "WatchFaceConfigStateHolder"
-
-        // To convert the double representing the arm length to valid float value in the range the
-        // slider can support, we need to multiply the original value times 1,000.
-        private const val MULTIPLE_FOR_SLIDER: Float = 1000f
-
-        const val MINUTE_HAND_LENGTH_MINIMUM_FOR_SLIDER =
-            MINUTE_HAND_LENGTH_FRACTION_MINIMUM * MULTIPLE_FOR_SLIDER
-
-        const val MINUTE_HAND_LENGTH_MAXIMUM_FOR_SLIDER =
-            MINUTE_HAND_LENGTH_FRACTION_MAXIMUM * MULTIPLE_FOR_SLIDER
-
-        const val MINUTE_HAND_LENGTH_DEFAULT_FOR_SLIDER =
-            MINUTE_HAND_LENGTH_FRACTION_DEFAULT * MULTIPLE_FOR_SLIDER
-
-        private fun multiplyByMultipleForSlider(lengthFraction: Double) =
-            lengthFraction * MULTIPLE_FOR_SLIDER
     }
 }

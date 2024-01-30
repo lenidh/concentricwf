@@ -11,12 +11,14 @@ import android.graphics.RectF
 import android.util.Log
 import android.view.SurfaceHolder
 import androidx.core.graphics.and
+import androidx.core.graphics.or
 import androidx.core.graphics.withRotation
 import androidx.core.graphics.withTranslation
 import androidx.wear.watchface.ComplicationSlotsManager
 import androidx.wear.watchface.DrawMode
 import androidx.wear.watchface.Renderer
 import androidx.wear.watchface.WatchState
+import androidx.wear.watchface.complications.data.EmptyComplicationData
 import androidx.wear.watchface.complications.rendering.CanvasComplicationDrawable
 import androidx.wear.watchface.complications.rendering.ComplicationDrawable
 import androidx.wear.watchface.style.CurrentUserStyleRepository
@@ -27,8 +29,9 @@ import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
 import de.lenidh.concentricwf.data.watchface.WatchFaceColorPalette.Companion.convertToWatchFaceColorPalette
 import de.lenidh.concentricwf.data.watchface.WatchFaceData
 import de.lenidh.concentricwf.utils.COLOR_STYLE_SETTING
-import de.lenidh.concentricwf.utils.DRAW_HOUR_PIPS_STYLE_SETTING
-import de.lenidh.concentricwf.utils.WATCH_HAND_LENGTH_STYLE_SETTING
+import de.lenidh.concentricwf.utils.COMPLICATION_OFFSET
+import de.lenidh.concentricwf.utils.COMPLICATION_RADIUS
+import de.lenidh.concentricwf.utils.computeComplicationAngle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,6 +40,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoField
+import kotlin.math.floor
 
 private const val FRAME_PERIOD_MS_DEFAULT: Long = 16L
 
@@ -176,34 +180,6 @@ class CwfWatchCanvasRenderer(
                         )
                     )
                 }
-
-                DRAW_HOUR_PIPS_STYLE_SETTING -> {
-                    val booleanValue =
-                        options.value as UserStyleSetting.BooleanUserStyleSetting.BooleanOption
-
-                    newWatchFaceData = newWatchFaceData.copy(
-                        drawHourPips = booleanValue.value
-                    )
-                }
-
-                WATCH_HAND_LENGTH_STYLE_SETTING -> {
-                    val doubleValue =
-                        options.value as UserStyleSetting.DoubleRangeUserStyleSetting.DoubleRangeOption
-
-                    // The arm lengths are usually only calculated the first time the watch face is
-                    // loaded to reduce the ops in the onDraw(). Because we updated the minute hand
-                    // watch length, we need to trigger a recalculation.
-                    armLengthChangedRecalculateClockHands = true
-
-                    // Updates length of minute hand based on edits from user.
-                    val newMinuteHandDimensions = newWatchFaceData.minuteHandDimensions.copy(
-                        lengthFraction = doubleValue.value.toFloat()
-                    )
-
-                    newWatchFaceData = newWatchFaceData.copy(
-                        minuteHandDimensions = newMinuteHandDimensions
-                    )
-                }
             }
         }
 
@@ -292,6 +268,11 @@ class CwfWatchCanvasRenderer(
             drawCurrentTime(canvas, bounds, zonedDateTime)
         }
 
+        if (renderParameters.watchFaceLayers.contains(WatchFaceLayer.COMPLICATIONS)) {
+            if (!isLowBitMode) {
+                drawComplicationsBorder(canvas, bounds)
+            }
+        }
         // CanvasComplicationDrawable already obeys rendererParameters.
         drawComplications(canvas, zonedDateTime)
     }
@@ -303,6 +284,78 @@ class CwfWatchCanvasRenderer(
                 complication.render(canvas, zonedDateTime, renderParameters)
             }
         }
+    }
+
+    private fun drawComplicationsBorder(canvas: Canvas, bounds: Rect) {
+        var min = 5
+        var max = 0
+        for ((i, entry) in complicationSlotsManager.complicationSlots.toSortedMap().entries.withIndex()) {
+            val (_, complication) = entry
+            if (complication.enabled && !(complication.complicationData.value is EmptyComplicationData)) {
+                min = min.coerceAtMost(i)
+                max = max.coerceAtLeast(i)
+            }
+        }
+        min = min.coerceAtMost(max)
+
+        val fillPaint = Paint()
+        fillPaint.style = Paint.Style.FILL
+        fillPaint.color = Color.BLACK
+
+        val strokePaint = Paint()
+        strokePaint.style = Paint.Style.STROKE
+        strokePaint.color = Color.WHITE
+        strokePaint.strokeWidth = 2F
+
+        val EDGE_RADIUS = bounds.width() * COMPLICATION_RADIUS
+        val WIDTH = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - EDGE_RADIUS
+        val START_ANGLE = floor(toDegrees(computeComplicationAngle(min)))
+        val END_ANGLE = floor(toDegrees(computeComplicationAngle(max)))
+
+        val m = Matrix()
+
+        val startPath = Path()
+        startPath.moveTo(bounds.right.toFloat() + strokePaint.strokeWidth, bounds.exactCenterY())
+        startPath.rLineTo(0F, EDGE_RADIUS)
+        startPath.rLineTo(-WIDTH - strokePaint.strokeWidth, 0F)
+        startPath.arcTo(bounds.right - WIDTH, bounds.exactCenterY(), EDGE_RADIUS, 90F, 90F)
+        startPath.close()
+        m.setRotate(START_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
+        startPath.transform(m)
+
+        val middlePath = Path()
+        middlePath.moveTo(bounds.right.toFloat() + strokePaint.strokeWidth, bounds.exactCenterY())
+        middlePath.arcTo(
+            bounds.exactCenterX(),
+            bounds.exactCenterY(),
+            bounds.right - bounds.exactCenterX() + strokePaint.strokeWidth,
+            0F,
+            -START_ANGLE + END_ANGLE
+        )
+        middlePath.arcTo(
+            bounds.exactCenterX(),
+            bounds.exactCenterY(),
+            bounds.right - bounds.exactCenterX() - WIDTH - EDGE_RADIUS,
+            -START_ANGLE + END_ANGLE,
+            START_ANGLE - END_ANGLE
+        )
+        middlePath.close()
+        m.setRotate(START_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
+        middlePath.transform(m)
+
+        val endPath = Path()
+        endPath.moveTo(bounds.right.toFloat() + strokePaint.strokeWidth, bounds.exactCenterY())
+        endPath.rLineTo(0F, -EDGE_RADIUS)
+        endPath.rLineTo(-WIDTH - strokePaint.strokeWidth, 0F)
+        endPath.arcTo(bounds.right - WIDTH, bounds.exactCenterY(), EDGE_RADIUS, -90F, -90F)
+        endPath.close()
+        m.setRotate(END_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
+        endPath.transform(m)
+
+        val path = startPath.or(middlePath).or(endPath)
+
+        canvas.drawPath(path, fillPaint)
+        canvas.drawPath(path, strokePaint)
     }
 
     private fun drawCurrentTime(
@@ -345,7 +398,13 @@ class CwfWatchCanvasRenderer(
         val borderRadius = -fontMetrics.ascent
         val borderPath = Path()
         borderPath.arcTo(minuteCenterX - smallIndexLength, minuteCenterY, borderRadius, 90F, 180F)
-        borderPath.arcTo(if (isLowBitMode) minuteCenterX + smallIndexLength else bounds.right.toFloat(), minuteCenterY, borderRadius, -90F, 180F)
+        borderPath.arcTo(
+            if (isLowBitMode) minuteCenterX + smallIndexLength else bounds.right.toFloat(),
+            minuteCenterY,
+            borderRadius,
+            -90F,
+            180F
+        )
         borderPath.close()
 
         val bgPadding = minutesIndexPadding + largeIndexLength
@@ -559,4 +618,8 @@ fun Path.arcTo(
         sweepAngle,
         false
     )
+}
+
+private fun toDegrees(value: Float): Float {
+    return (value * 180 / Math.PI).toFloat()
 }

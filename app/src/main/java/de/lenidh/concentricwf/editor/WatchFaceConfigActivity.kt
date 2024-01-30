@@ -21,11 +21,7 @@ import android.view.View
 import androidx.activity.ComponentActivity
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
-import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
 import de.lenidh.concentricwf.databinding.ActivityWatchFaceConfigBinding
-import de.lenidh.concentricwf.editor.WatchFaceConfigStateHolder.Companion.MINUTE_HAND_LENGTH_DEFAULT_FOR_SLIDER
-import de.lenidh.concentricwf.editor.WatchFaceConfigStateHolder.Companion.MINUTE_HAND_LENGTH_MAXIMUM_FOR_SLIDER
-import de.lenidh.concentricwf.editor.WatchFaceConfigStateHolder.Companion.MINUTE_HAND_LENGTH_MINIMUM_FOR_SLIDER
 import de.lenidh.concentricwf.utils.COMPLICATION_1_BOTTOM_BOUND
 import de.lenidh.concentricwf.utils.COMPLICATION_1_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_1_LEFT_BOUND
@@ -75,25 +71,8 @@ class WatchFaceConfigActivity : ComponentActivity() {
         binding = ActivityWatchFaceConfigBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Disable widgets until data loads and values are set.
-        binding.colorStylePickerButton.isEnabled = false
-        binding.ticksEnabledSwitch.isEnabled = false
-        binding.minuteHandLengthSlider.isEnabled = false
-
-        // Set max and min.
-        binding.minuteHandLengthSlider.valueTo = MINUTE_HAND_LENGTH_MAXIMUM_FOR_SLIDER
-        binding.minuteHandLengthSlider.valueFrom = MINUTE_HAND_LENGTH_MINIMUM_FOR_SLIDER
-        binding.minuteHandLengthSlider.value = MINUTE_HAND_LENGTH_DEFAULT_FOR_SLIDER
-
-        binding.minuteHandLengthSlider.addOnChangeListener { slider, value, fromUser ->
-            Log.d(TAG, "addOnChangeListener(): $slider, $value, $fromUser")
-            if (fromUser) {
-                stateHolder.setMinuteHandArmLength(value)
-            }
-        }
-
-        val layoutWidth = (binding.preview.root as View).width;
-        val layoutHeight = (binding.preview.root as View).height;
+        val layoutWidth = binding.preview.root.width;
+        val layoutHeight = binding.preview.root.height;
         Log.d(TAG, "layout size: $layoutWidth $layoutHeight")
 
         var params: ConstraintLayout.LayoutParams
@@ -161,28 +140,7 @@ class WatchFaceConfigActivity : ComponentActivity() {
         val colorStyleId: String = userStylesAndPreview.colorStyleId
         Log.d(TAG, "\tselected color style: $colorStyleId")
 
-        binding.ticksEnabledSwitch.isChecked = userStylesAndPreview.ticksEnabled
-        binding.minuteHandLengthSlider.value = userStylesAndPreview.minuteHandLength
         binding.preview.watchFaceBackground.setImageBitmap(userStylesAndPreview.previewImage)
-
-        enabledWidgets()
-    }
-
-    private fun enabledWidgets() {
-        binding.colorStylePickerButton.isEnabled = true
-        binding.ticksEnabledSwitch.isEnabled = true
-        binding.minuteHandLengthSlider.isEnabled = true
-    }
-
-    fun onClickColorStylePickerButton(view: View) {
-        Log.d(TAG, "onClickColorStylePickerButton() $view")
-
-        // TODO (codingjeremy): Replace with a RecyclerView to choose color style (next CL)
-        // Selects a random color style from list.
-        val colorStyleIdAndResourceIdsList = enumValues<ColorStyleIdAndResourceIds>()
-        val newColorStyle: ColorStyleIdAndResourceIds = colorStyleIdAndResourceIdsList.random()
-
-        stateHolder.setColorStyle(newColorStyle.id)
     }
 
     fun onClickComplication1Button(view: View) {

@@ -39,8 +39,8 @@ import kotlin.math.sin
 // location from 0.0 - 1.0.)
 // Both left and right complications use the same top and bottom bounds.
 
-private const val COMPLICATION_OFFSET = 0.05F
-private const val COMPLICATION_RADIUS = 0.1F
+const val COMPLICATION_OFFSET = 0.025F
+const val COMPLICATION_RADIUS = 0.1F
 private const val COMPLICATION_ANGLE = PI / 5
 
 val COMPLICATION_1_LEFT_BOUND = computeComplicationLeftBound(0)
@@ -68,25 +68,26 @@ val COMPLICATION_5_RIGHT_BOUND = computeComplicationRightBound(4)
 val COMPLICATION_5_TOP_BOUND = computeComplicationTopBound(4)
 val COMPLICATION_5_BOTTOM_BOUND = computeComplicationBottomBound(4)
 
-private const val RIGHT_COMPLICATION_LEFT_BOUND = 0.6F
-private const val RIGHT_COMPLICATION_RIGHT_BOUND = 0.8F
-
 private val DEFAULT_COMPLICATION_STYLE_DRAWABLE_ID = R.drawable.complication_red_style
 
+fun computeComplicationAngle(i: Int): Float {
+    return (PI + (2 - i) * COMPLICATION_ANGLE).toFloat()
+}
+
 private fun computeComplicationLeftBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(PI + (2 - i) * COMPLICATION_ANGLE).toFloat() - COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(computeComplicationAngle(i)).toFloat() - COMPLICATION_RADIUS + 0.5F
 }
 
 private fun computeComplicationRightBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(PI + (2 - i) * COMPLICATION_ANGLE).toFloat() + COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(computeComplicationAngle(i)).toFloat() + COMPLICATION_RADIUS + 0.5F
 }
 
 private fun computeComplicationTopBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(PI + (2 - i) * COMPLICATION_ANGLE).toFloat() - COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(computeComplicationAngle(i)).toFloat() - COMPLICATION_RADIUS + 0.5F
 }
 
 private fun computeComplicationBottomBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(PI + (2 - i) * COMPLICATION_ANGLE).toFloat() + COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(computeComplicationAngle(i)).toFloat() + COMPLICATION_RADIUS + 0.5F
 }
 
 // Unique IDs for each complication. The settings activity that supports allowing users
