@@ -48,16 +48,8 @@ private const val GAP_BETWEEN_HAND_AND_CENTER_FRACTION =
 private const val NUMBER_RADIUS_FRACTION = 0.45f
 
 /**
- * Represents all data needed to render an analog watch face.
+ * Represents all data needed to render the watch face.
  */
 data class WatchFaceData(
-    val activeColorStyle: ColorStyleIdAndResourceIds = ColorStyleIdAndResourceIds.RED,
-    val ambientColorStyle: ColorStyleIdAndResourceIds = ColorStyleIdAndResourceIds.AMBIENT,
-    val centerCircleDiameterFraction: Float = CENTER_CIRCLE_DIAMETER_FRACTION,
-    val numberRadiusFraction: Float = NUMBER_RADIUS_FRACTION,
-    val outerCircleStokeWidthFraction: Float = OUTER_CIRCLE_STROKE_WIDTH_FRACTION,
-    val numberStyleOuterCircleRadiusFraction: Float = NUMBER_STYLE_OUTER_CIRCLE_RADIUS_FRACTION,
-    val gapBetweenOuterCircleAndBorderFraction: Float =
-        GAP_BETWEEN_OUTER_CIRCLE_AND_BORDER_FRACTION,
-    val gapBetweenHandAndCenterFraction: Float = GAP_BETWEEN_HAND_AND_CENTER_FRACTION
+    val activeColorStyle: ColorStyleIdAndResourceIds = ColorStyleIdAndResourceIds.getColorStyleConfig(),
 )

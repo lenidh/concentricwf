@@ -16,7 +16,6 @@
 package de.lenidh.concentricwf.editor
 
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.wear.watchface.DrawMode
@@ -120,12 +119,7 @@ class WatchFaceConfigStateHolder(
         val bitmap = editorSession.renderWatchFaceToBitmap(
             RenderParameters(
                 DrawMode.INTERACTIVE,
-                WatchFaceLayer.ALL_WATCH_FACE_LAYERS,
-                RenderParameters.HighlightLayer(
-                    RenderParameters.HighlightedElement.AllComplicationSlots,
-                    Color.RED, // Red complication highlight.
-                    Color.argb(128, 0, 0, 0) // Darken everything else.
-                )
+                WatchFaceLayer.ALL_WATCH_FACE_LAYERS
             ),
             editorSession.previewReferenceInstant,
             complicationsPreviewData

@@ -32,15 +32,15 @@ import androidx.wear.watchface.complications.rendering.ComplicationDrawable
  * as many [ComplicationDrawable]s as needed.
  */
 data class WatchFaceColorPalette(
-    val activePrimaryColor: Int,
-    val activeSecondaryColor: Int,
-    val activeBackgroundColor: Int,
-    val activeOuterElementColor: Int,
+    val activeCurrentTimeColor: Int,
+    val activeMinutesColor: Int,
+    val activeSecondsColor: Int,
+    val activeBordersColor: Int,
     @DrawableRes val complicationStyleDrawableId: Int,
-    val ambientPrimaryColor: Int,
-    val ambientSecondaryColor: Int,
-    val ambientBackgroundColor: Int,
-    val ambientOuterElementColor: Int
+    val ambientCurrentTimeColor: Int,
+    val ambientMinutesColor: Int,
+    val ambientSecondsColor: Int,
+    val ambientBordersColor: Int
 ) {
     companion object {
         /**
@@ -49,21 +49,20 @@ data class WatchFaceColorPalette(
         fun convertToWatchFaceColorPalette(
             context: Context,
             activeColorStyle: ColorStyleIdAndResourceIds,
-            ambientColorStyle: ColorStyleIdAndResourceIds
         ): WatchFaceColorPalette {
             return WatchFaceColorPalette(
                 // Active colors
-                activePrimaryColor = context.getColor(activeColorStyle.primaryColorId),
-                activeSecondaryColor = context.getColor(activeColorStyle.secondaryColorId),
-                activeBackgroundColor = context.getColor(activeColorStyle.backgroundColorId),
-                activeOuterElementColor = context.getColor(activeColorStyle.outerElementColorId),
+                activeCurrentTimeColor = activeColorStyle.currentTimeColorId.toArgb(),
+                activeMinutesColor = activeColorStyle.minutesColorId.toArgb(),
+                activeSecondsColor = activeColorStyle.secondsColorId.toArgb(),
+                activeBordersColor = activeColorStyle.bordersColorId.toArgb(),
                 // Complication color style
                 complicationStyleDrawableId = activeColorStyle.complicationStyleDrawableId,
                 // Ambient colors
-                ambientPrimaryColor = context.getColor(ambientColorStyle.primaryColorId),
-                ambientSecondaryColor = context.getColor(ambientColorStyle.secondaryColorId),
-                ambientBackgroundColor = context.getColor(ambientColorStyle.backgroundColorId),
-                ambientOuterElementColor = context.getColor(ambientColorStyle.outerElementColorId)
+                ambientCurrentTimeColor = activeColorStyle.currentTimeColorId.toArgb(),
+                ambientMinutesColor = activeColorStyle.minutesColorId.toArgb(),
+                ambientSecondsColor = activeColorStyle.secondsColorId.toArgb(),
+                ambientBordersColor = activeColorStyle.bordersColorId.toArgb(),
             )
         }
     }

@@ -41,7 +41,7 @@ fun createUserStyleSchema(context: Context): UserStyleSchema {
             R.string.colors_style_setting,
             R.string.colors_style_setting_description,
             null,
-            ColorStyleIdAndResourceIds.toOptionList(context),
+            ColorStyleIdAndResourceIds.getColorOptionList(context),
             listOf(
                 WatchFaceLayer.BASE,
                 WatchFaceLayer.COMPLICATIONS,

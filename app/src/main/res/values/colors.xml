@@ -54,11 +54,13 @@
     <color name="white_outer_element_color">@color/white_70</color>
 
     <!-- defaults -->
+    <color name="bg_default">@android:color/black</color>
     <color name="index_default">#767a80</color>
     <color name="hour_default">@android:color/white</color>
     <color name="minute_default">@android:color/white</color>
     <color name="minutes_default">#767a80</color>
     <color name="seconds_default">@android:color/white</color>
+    <color name="border_default">@android:color/white</color>
 
     <!-- custom colors. -->
     <color name="transparent">#00000000</color>

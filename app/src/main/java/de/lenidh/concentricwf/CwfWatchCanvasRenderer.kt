@@ -2,7 +2,6 @@ package de.lenidh.concentricwf
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.Path
@@ -73,14 +72,13 @@ class CwfWatchCanvasRenderer(
 
     // Converts resource ids into Colors and ComplicationDrawable.
     private var watchFaceColors = convertToWatchFaceColorPalette(
-        context, watchFaceData.activeColorStyle, watchFaceData.ambientColorStyle
+        context, watchFaceData.activeColorStyle
     )
 
-    // Initializes paint object for painting the clock hands with default values.
-    private val clockHandPaint = Paint().apply {
+    private val bgPaint = Paint().apply {
         isAntiAlias = true
-        strokeWidth =
-            context.resources.getDimensionPixelSize(R.dimen.clock_hand_stroke_width).toFloat()
+        style = Paint.Style.FILL
+        color = context.resources.getColor(R.color.bg_default, null)
     }
 
     private val indexPaint = Paint().apply {
@@ -105,13 +103,6 @@ class CwfWatchCanvasRenderer(
         color = context.resources.getColor(R.color.minute_default, null)
     }
 
-    private val minuteBorderPaint = Paint().apply {
-        isAntiAlias = true
-        style = Paint.Style.STROKE
-        strokeWidth = 2F
-        color = context.resources.getColor(R.color.minute_default, null)
-    }
-
     private val minutesTextPaint = Paint().apply {
         isAntiAlias = true
         textSize = 12F
@@ -126,6 +117,13 @@ class CwfWatchCanvasRenderer(
         color = context.resources.getColor(R.color.seconds_default, null)
     }
 
+    private val borderPaint = Paint().apply {
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        strokeWidth = 2F
+        color = context.resources.getColor(R.color.border_default, null)
+    }
+
     private var largeIndexLength = 0
     private var largeIndexWidth = 0
     private var smallIndexLength = 0
@@ -137,10 +135,6 @@ class CwfWatchCanvasRenderer(
 
     private var minuteCenterX = 0F
     private var minuteCenterY = 0F
-
-    // Changed when setting changes cause a change in the minute hand arm (triggered by user in
-    // updateUserStyle() via userStyleRepository.addUserStyleListener()).
-    private var armLengthChangedRecalculateClockHands: Boolean = false
 
     // Default size of watch face drawing area, that is, a no size rectangle. Will be replaced with
     // valid dimensions from the system.
@@ -189,7 +183,7 @@ class CwfWatchCanvasRenderer(
 
             // Recreates Color and ComplicationDrawable from resource ids.
             watchFaceColors = convertToWatchFaceColorPalette(
-                context, watchFaceData.activeColorStyle, watchFaceData.ambientColorStyle
+                context, watchFaceData.activeColorStyle
             )
 
             // Applies the user chosen complication color scheme changes. ComplicationDrawables for
@@ -258,7 +252,21 @@ class CwfWatchCanvasRenderer(
         }
         val isLowBitMode = renderParameters.drawMode != DrawMode.INTERACTIVE
 
-        canvas.drawColor(Color.BLACK)
+        canvas.drawColor(bgPaint.color)
+
+        if (!isLowBitMode) {
+            hourTextPaint.color = watchFaceColors.activeCurrentTimeColor
+            minuteTextPaint.color = watchFaceColors.activeCurrentTimeColor
+            minutesTextPaint.color = watchFaceColors.activeMinutesColor
+            secondsTextPaint.color = watchFaceColors.activeSecondsColor
+            borderPaint.color = watchFaceColors.activeBordersColor
+        } else {
+            hourTextPaint.color = watchFaceColors.ambientCurrentTimeColor
+            minuteTextPaint.color = watchFaceColors.ambientCurrentTimeColor
+            minutesTextPaint.color = watchFaceColors.ambientMinutesColor
+            secondsTextPaint.color = watchFaceColors.ambientSecondsColor
+            borderPaint.color = watchFaceColors.ambientBordersColor
+        }
 
         if (renderParameters.watchFaceLayers.contains(WatchFaceLayer.BASE)) {
             if (!isLowBitMode) {
@@ -298,15 +306,6 @@ class CwfWatchCanvasRenderer(
         }
         min = min.coerceAtMost(max)
 
-        val fillPaint = Paint()
-        fillPaint.style = Paint.Style.FILL
-        fillPaint.color = Color.BLACK
-
-        val strokePaint = Paint()
-        strokePaint.style = Paint.Style.STROKE
-        strokePaint.color = Color.WHITE
-        strokePaint.strokeWidth = 2F
-
         val EDGE_RADIUS = bounds.width() * COMPLICATION_RADIUS
         val WIDTH = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - EDGE_RADIUS
         val START_ANGLE = floor(toDegrees(computeComplicationAngle(min)))
@@ -315,20 +314,20 @@ class CwfWatchCanvasRenderer(
         val m = Matrix()
 
         val startPath = Path()
-        startPath.moveTo(bounds.right.toFloat() + strokePaint.strokeWidth, bounds.exactCenterY())
+        startPath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
         startPath.rLineTo(0F, EDGE_RADIUS)
-        startPath.rLineTo(-WIDTH - strokePaint.strokeWidth, 0F)
+        startPath.rLineTo(-WIDTH - borderPaint.strokeWidth, 0F)
         startPath.arcTo(bounds.right - WIDTH, bounds.exactCenterY(), EDGE_RADIUS, 90F, 90F)
         startPath.close()
         m.setRotate(START_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
         startPath.transform(m)
 
         val middlePath = Path()
-        middlePath.moveTo(bounds.right.toFloat() + strokePaint.strokeWidth, bounds.exactCenterY())
+        middlePath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
         middlePath.arcTo(
             bounds.exactCenterX(),
             bounds.exactCenterY(),
-            bounds.right - bounds.exactCenterX() + strokePaint.strokeWidth,
+            bounds.right - bounds.exactCenterX() + borderPaint.strokeWidth,
             0F,
             -START_ANGLE + END_ANGLE
         )
@@ -344,9 +343,9 @@ class CwfWatchCanvasRenderer(
         middlePath.transform(m)
 
         val endPath = Path()
-        endPath.moveTo(bounds.right.toFloat() + strokePaint.strokeWidth, bounds.exactCenterY())
+        endPath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
         endPath.rLineTo(0F, -EDGE_RADIUS)
-        endPath.rLineTo(-WIDTH - strokePaint.strokeWidth, 0F)
+        endPath.rLineTo(-WIDTH - borderPaint.strokeWidth, 0F)
         endPath.arcTo(bounds.right - WIDTH, bounds.exactCenterY(), EDGE_RADIUS, -90F, -90F)
         endPath.close()
         m.setRotate(END_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
@@ -354,8 +353,8 @@ class CwfWatchCanvasRenderer(
 
         val path = startPath.or(middlePath).or(endPath)
 
-        canvas.drawPath(path, fillPaint)
-        canvas.drawPath(path, strokePaint)
+        canvas.drawPath(path, bgPaint)
+        canvas.drawPath(path, borderPaint)
     }
 
     private fun drawCurrentTime(
@@ -417,12 +416,8 @@ class CwfWatchCanvasRenderer(
         )
         borderBg = borderBg.and(borderPath)
 
-        val bgPaint = Paint()
-        bgPaint.color = Color.BLACK
-        bgPaint.style = Paint.Style.FILL
-
         canvas.drawPath(borderBg, bgPaint)
-        canvas.drawPath(borderPath, minuteBorderPaint)
+        canvas.drawPath(borderPath, borderPaint)
     }
 
     private fun drawRims(
@@ -455,14 +450,11 @@ class CwfWatchCanvasRenderer(
         val drawAmbient = renderParameters.drawMode == DrawMode.AMBIENT
         // Draw second hand if not in ambient mode
         if (!drawAmbient) {
-            clockHandPaint.color = watchFaceColors.activeSecondaryColor
-
             // Second hand has a different color style (secondary color) and is only drawn in
             // active mode, so we calculate it here (not above with others).
             val secondsRotation = (zonedDateTime.toLocalTime().get(ChronoField.MILLI_OF_DAY)).rem(
                 millisPerMinute
             ) * 360.0f / millisPerMinute
-            clockHandPaint.color = watchFaceColors.activeSecondaryColor
 
             val secondIndexRim =
                 IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)

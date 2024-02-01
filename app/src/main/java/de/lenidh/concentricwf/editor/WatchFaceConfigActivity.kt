@@ -15,13 +15,67 @@
  */
 package de.lenidh.concentricwf.editor
 
+import android.graphics.Color.parseColor
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import androidx.activity.ComponentActivity
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
-import de.lenidh.concentricwf.databinding.ActivityWatchFaceConfigBinding
+import androidx.navigation.NavHostController
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.CompactChip
+import androidx.wear.compose.material.HorizontalPageIndicator
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PageIndicatorState
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Scaffold
+import androidx.wear.compose.material.Text
+import androidx.wear.compose.material.Vignette
+import androidx.wear.compose.material.VignettePosition
+import androidx.wear.compose.navigation.SwipeDismissableNavHost
+import androidx.wear.compose.navigation.composable
+import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
+import androidx.wear.compose.ui.tooling.preview.WearPreviewLargeRound
+import androidx.wear.watchface.style.UserStyleSetting
+import de.lenidh.concentricwf.R
+import de.lenidh.concentricwf.data.watchface.COLOR_OPTIONS
+import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
 import de.lenidh.concentricwf.utils.COMPLICATION_1_BOTTOM_BOUND
 import de.lenidh.concentricwf.utils.COMPLICATION_1_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_1_LEFT_BOUND
@@ -62,55 +116,36 @@ class WatchFaceConfigActivity : ComponentActivity() {
         )
     }
 
-    private lateinit var binding: ActivityWatchFaceConfigBinding
+    private lateinit var navController: NavHostController
+    private lateinit var preview: MutableState<ImageBitmap?>
+    private lateinit var currentColorId: MutableState<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate()")
 
-        binding = ActivityWatchFaceConfigBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        preview = mutableStateOf(ImageBitmap.imageResource(resources, R.drawable.watch_preview))
+        currentColorId = mutableStateOf("")
 
-        val layoutWidth = binding.preview.root.width;
-        val layoutHeight = binding.preview.root.height;
-        Log.d(TAG, "layout size: $layoutWidth $layoutHeight")
+        setTheme(android.R.style.Theme_DeviceDefault)
 
-        var params: ConstraintLayout.LayoutParams
+        val colorOptions = ColorStyleIdAndResourceIds.getColorOptionList(this)
 
-        params = binding.preview.complication1.layoutParams as ConstraintLayout.LayoutParams
-        params.matchConstraintPercentWidth = COMPLICATION_1_RIGHT_BOUND - COMPLICATION_1_LEFT_BOUND
-        params.horizontalBias = COMPLICATION_1_LEFT_BOUND + params.matchConstraintPercentWidth / 2
-        params.matchConstraintPercentHeight = COMPLICATION_1_BOTTOM_BOUND - COMPLICATION_1_TOP_BOUND
-        params.verticalBias = COMPLICATION_1_TOP_BOUND + params.matchConstraintPercentHeight / 2
-        binding.preview.complication1.layoutParams = params
+        setContent {
+            navController = rememberSwipeDismissableNavController()
 
-        params = binding.preview.complication2.layoutParams as ConstraintLayout.LayoutParams
-        params.matchConstraintPercentWidth = COMPLICATION_2_RIGHT_BOUND - COMPLICATION_2_LEFT_BOUND
-        params.horizontalBias = COMPLICATION_2_LEFT_BOUND + params.matchConstraintPercentWidth / 2
-        params.matchConstraintPercentHeight = COMPLICATION_2_BOTTOM_BOUND - COMPLICATION_2_TOP_BOUND
-        params.verticalBias = COMPLICATION_2_TOP_BOUND + params.matchConstraintPercentHeight / 2
-        binding.preview.complication2.layoutParams = params
-
-        params = binding.preview.complication3.layoutParams as ConstraintLayout.LayoutParams
-        params.matchConstraintPercentWidth = COMPLICATION_3_RIGHT_BOUND - COMPLICATION_3_LEFT_BOUND
-        params.horizontalBias = COMPLICATION_3_LEFT_BOUND + params.matchConstraintPercentWidth / 2
-        params.matchConstraintPercentHeight = COMPLICATION_3_BOTTOM_BOUND - COMPLICATION_3_TOP_BOUND
-        params.verticalBias = COMPLICATION_3_TOP_BOUND + params.matchConstraintPercentHeight / 2
-        binding.preview.complication3.layoutParams = params
-
-        params = binding.preview.complication4.layoutParams as ConstraintLayout.LayoutParams
-        params.matchConstraintPercentWidth = COMPLICATION_4_RIGHT_BOUND - COMPLICATION_4_LEFT_BOUND
-        params.horizontalBias = COMPLICATION_4_LEFT_BOUND + params.matchConstraintPercentWidth / 2
-        params.matchConstraintPercentHeight = COMPLICATION_4_BOTTOM_BOUND - COMPLICATION_4_TOP_BOUND
-        params.verticalBias = COMPLICATION_4_TOP_BOUND + params.matchConstraintPercentHeight / 2
-        binding.preview.complication4.layoutParams = params
-
-        params = binding.preview.complication5.layoutParams as ConstraintLayout.LayoutParams
-        params.matchConstraintPercentWidth = COMPLICATION_5_RIGHT_BOUND - COMPLICATION_5_LEFT_BOUND
-        params.horizontalBias = COMPLICATION_5_LEFT_BOUND + params.matchConstraintPercentWidth / 2
-        params.matchConstraintPercentHeight = COMPLICATION_5_BOTTOM_BOUND - COMPLICATION_5_TOP_BOUND
-        params.verticalBias = COMPLICATION_5_TOP_BOUND + params.matchConstraintPercentHeight / 2
-        binding.preview.complication5.layoutParams = params
+            MaterialTheme() {
+                createContent(preview = preview,
+                    colorOptions = colorOptions,
+                    currentColorId = currentColorId,
+                    onColorSelected = { id ->
+                        stateHolder.setColorStyle(id)
+                    },
+                    onClick = { id ->
+                        stateHolder.setComplication(id)
+                    })
+            }
+        }
 
         lifecycleScope.launch(Dispatchers.Main.immediate) {
             stateHolder.uiState.collect { uiState: WatchFaceConfigStateHolder.EditWatchFaceUiState ->
@@ -122,6 +157,7 @@ class WatchFaceConfigActivity : ComponentActivity() {
                     is WatchFaceConfigStateHolder.EditWatchFaceUiState.Success -> {
                         Log.d(TAG, "StateFlow Success.")
                         updateWatchFaceEditorPreview(uiState.userStylesAndPreview)
+                        currentColorId.value = uiState.userStylesAndPreview.colorStyleId
                     }
 
                     is WatchFaceConfigStateHolder.EditWatchFaceUiState.Error -> {
@@ -140,35 +176,297 @@ class WatchFaceConfigActivity : ComponentActivity() {
         val colorStyleId: String = userStylesAndPreview.colorStyleId
         Log.d(TAG, "\tselected color style: $colorStyleId")
 
-        binding.preview.watchFaceBackground.setImageBitmap(userStylesAndPreview.previewImage)
-    }
-
-    fun onClickComplication1Button(view: View) {
-        Log.d(TAG, "onClickComplication1Button() $view")
-        stateHolder.setComplication(COMPLICATION_1_ID)
-    }
-
-    fun onClickComplication2Button(view: View) {
-        Log.d(TAG, "onClickComplication2Button() $view")
-        stateHolder.setComplication(COMPLICATION_2_ID)
-    }
-
-    fun onClickComplication3Button(view: View) {
-        Log.d(TAG, "onClickComplication3Button() $view")
-        stateHolder.setComplication(COMPLICATION_3_ID)
-    }
-
-    fun onClickComplication4Button(view: View) {
-        Log.d(TAG, "onClickComplication4Button() $view")
-        stateHolder.setComplication(COMPLICATION_4_ID)
-    }
-
-    fun onClickComplication5Button(view: View) {
-        Log.d(TAG, "onClickComplication5Button() $view")
-        stateHolder.setComplication(COMPLICATION_5_ID)
+        preview.value = userStylesAndPreview.previewImage.asImageBitmap()
     }
 
     companion object {
         const val TAG = "WatchFaceConfigActivity"
     }
+}
+
+@Composable
+private fun createContent(
+    navController: NavHostController = rememberSwipeDismissableNavController(),
+    preview: MutableState<ImageBitmap?> = mutableStateOf(null),
+    colorOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption> = emptyList(),
+    currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
+    onClick: (Int) -> Unit = {},
+    onColorSelected: (String) -> Unit = {}
+) {
+    SwipeDismissableNavHost(
+        navController = navController, startDestination = "Editor"
+    ) {
+        composable(route = "Editor") {
+            OptionPager(
+                navController = navController,
+                preview = preview,
+                currentColorId = currentColorId,
+                onClick = onClick,
+            )
+        }
+        composable(route = "ColorPicker") {
+            ColorPicker(colorOptions) { id ->
+                navController.popBackStack()
+                onColorSelected(id)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@WearPreviewLargeRound
+@Composable
+private fun OptionPager(
+    navController: NavHostController = rememberSwipeDismissableNavController(),
+    preview: MutableState<ImageBitmap?> = mutableStateOf(null),
+    currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
+    onClick: (Int) -> Unit = {}
+) {
+    val pagerState = rememberPagerState(pageCount = { 2 })
+    val pageIndicatorState = remember {
+        object : PageIndicatorState {
+            override val pageOffset: Float
+                get() = pagerState.currentPageOffsetFraction
+            override val selectedPage: Int
+                get() = pagerState.currentPage
+            override val pageCount: Int
+                get() = pagerState.pageCount
+        }
+    }
+
+    Scaffold(pageIndicator = {
+        HorizontalPageIndicator(
+            pageIndicatorState = pageIndicatorState, modifier = Modifier.padding(6.dp)
+        )
+    }) {
+        val previewImage by remember { preview }
+        previewImage?.let {
+            Image(
+                bitmap = it, contentDescription = "", modifier = Modifier.fillMaxSize()
+            )
+        }
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize(),
+            pageSize = PageSize.Fill,
+        ) { page ->
+            if (page == 0) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 24.dp),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    CompactChip(label = {
+                        val text by remember { currentColorId }
+                        Text(
+                            text = text,
+                            modifier = Modifier.padding(0.dp),
+                            style = MaterialTheme.typography.caption2
+                        )
+                    },
+                        modifier = Modifier
+                            .padding(0.dp)
+                            .height(32.dp),
+                        colors = ChipDefaults.secondaryChipColors(),
+                        onClick = { navController.navigate("ColorPicker") })
+                }
+            }
+            if (page == 1) {
+                ConstraintLayout(
+                    modifier = Modifier.fillMaxSize(),
+                ) {
+                    val complication1LeftGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_1_LEFT_BOUND
+                    )
+                    val complication1RightGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_1_RIGHT_BOUND
+                    )
+                    val complication1TopGuideline = createGuidelineFromTop(
+                        COMPLICATION_1_TOP_BOUND
+                    )
+                    val complication1BottomGuideline = createGuidelineFromTop(
+                        COMPLICATION_1_BOTTOM_BOUND
+                    )
+                    val complication2LeftGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_2_LEFT_BOUND
+                    )
+                    val complication2RightGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_2_RIGHT_BOUND
+                    )
+                    val complication2TopGuideline = createGuidelineFromTop(
+                        COMPLICATION_2_TOP_BOUND
+                    )
+                    val complication2BottomGuideline = createGuidelineFromTop(
+                        COMPLICATION_2_BOTTOM_BOUND
+                    )
+                    val complication3LeftGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_3_LEFT_BOUND
+                    )
+                    val complication3RightGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_3_RIGHT_BOUND
+                    )
+                    val complication3TopGuideline = createGuidelineFromTop(
+                        COMPLICATION_3_TOP_BOUND
+                    )
+                    val complication3BottomGuideline = createGuidelineFromTop(
+                        COMPLICATION_3_BOTTOM_BOUND
+                    )
+                    val complication4LeftGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_4_LEFT_BOUND
+                    )
+                    val complication4RightGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_4_RIGHT_BOUND
+                    )
+                    val complication4TopGuideline = createGuidelineFromTop(
+                        COMPLICATION_4_TOP_BOUND
+                    )
+                    val complication4BottomGuideline = createGuidelineFromTop(
+                        COMPLICATION_4_BOTTOM_BOUND
+                    )
+                    val complication5LeftGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_5_LEFT_BOUND
+                    )
+                    val complication5RightGuideline = createGuidelineFromAbsoluteLeft(
+                        COMPLICATION_5_RIGHT_BOUND
+                    )
+                    val complication5TopGuideline = createGuidelineFromTop(
+                        COMPLICATION_5_TOP_BOUND
+                    )
+                    val complication5BottomGuideline = createGuidelineFromTop(
+                        COMPLICATION_5_BOTTOM_BOUND
+                    )
+
+                    val (button1, button2, button3, button4, button5) = createRefs()
+
+                    Button(modifier = Modifier.constrainAs(button1) {
+                        absoluteLeft.linkTo(complication1LeftGuideline)
+                        absoluteRight.linkTo(complication1RightGuideline)
+                        top.linkTo(complication1TopGuideline)
+                        bottom.linkTo(complication1BottomGuideline)
+                    },
+                        colors = ButtonDefaults.outlinedButtonColors(),
+                        border = ButtonDefaults.outlinedButtonBorder(
+                            borderColor = Color.Gray, borderWidth = 3.dp
+                        ),
+                        onClick = { onClick(COMPLICATION_1_ID) }) {}
+                    Button(modifier = Modifier.constrainAs(button2) {
+                        absoluteLeft.linkTo(complication2LeftGuideline)
+                        absoluteRight.linkTo(complication2RightGuideline)
+                        top.linkTo(complication2TopGuideline)
+                        bottom.linkTo(complication2BottomGuideline)
+                    },
+                        colors = ButtonDefaults.outlinedButtonColors(),
+                        border = ButtonDefaults.outlinedButtonBorder(
+                            borderColor = Color.Gray, borderWidth = 3.dp
+                        ),
+                        onClick = { onClick(COMPLICATION_2_ID) }) {}
+                    Button(modifier = Modifier.constrainAs(button3) {
+                        absoluteLeft.linkTo(complication3LeftGuideline)
+                        absoluteRight.linkTo(complication3RightGuideline)
+                        top.linkTo(complication3TopGuideline)
+                        bottom.linkTo(complication3BottomGuideline)
+                    },
+                        colors = ButtonDefaults.outlinedButtonColors(),
+                        border = ButtonDefaults.outlinedButtonBorder(
+                            borderColor = Color.Gray, borderWidth = 3.dp
+                        ),
+                        onClick = { onClick(COMPLICATION_3_ID) }) {}
+                    Button(modifier = Modifier.constrainAs(button4) {
+                        absoluteLeft.linkTo(complication4LeftGuideline)
+                        absoluteRight.linkTo(complication4RightGuideline)
+                        top.linkTo(complication4TopGuideline)
+                        bottom.linkTo(complication4BottomGuideline)
+                    },
+                        colors = ButtonDefaults.outlinedButtonColors(),
+                        border = ButtonDefaults.outlinedButtonBorder(
+                            borderColor = Color.Gray, borderWidth = 3.dp
+                        ),
+                        onClick = { onClick(COMPLICATION_4_ID) }) {}
+                    Button(
+                        modifier = Modifier.constrainAs(button5) {
+                            absoluteLeft.linkTo(complication5LeftGuideline)
+                            absoluteRight.linkTo(complication5RightGuideline)
+                            top.linkTo(complication5TopGuideline)
+                            bottom.linkTo(complication5BottomGuideline)
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(),
+                        border = ButtonDefaults.outlinedButtonBorder(
+                            borderColor = Color.Gray, borderWidth = 3.dp
+                        ),
+                        onClick = { onClick(COMPLICATION_5_ID) },
+                    ) {}
+                }
+            }
+        }
+    }
+}
+
+@WearPreviewLargeRound
+@Composable
+private fun ColorPicker(
+    @PreviewParameter(ColorOptionsProvider::class) colorOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
+    onClick: (String) -> Unit = {}
+) {
+    val listState = rememberScalingLazyListState()
+    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
+    val showVignette = mutableStateOf(true)
+
+    Scaffold(
+        positionIndicator = {
+            PositionIndicator(
+                scalingLazyListState = listState, modifier = Modifier
+            )
+        },
+        vignette = {
+            if (showVignette.value) {
+                Vignette(vignettePosition = vignetteState.value)
+            }
+        },
+    ) {
+        ScalingLazyColumn(
+            contentPadding = PaddingValues(top = 40.dp),
+            state = listState,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            colorOptions.map {
+                item {
+                    Chip(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp, 0.dp),
+                        onClick = { onClick(it.id.toString()) },
+                        label = {
+                            Text(it.displayName.toString())
+                        },
+                        icon = {
+                            val color = Color(parseColor(it.id.toString()))
+                            Circle(
+                                color = color, modifier = Modifier.size(ChipDefaults.IconSize)
+                            )
+                        },
+                        colors = ChipDefaults.secondaryChipColors()
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+fun Circle(color: Color, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.composed {
+        clip(CircleShape).background(color)
+    })
+}
+
+class ColorOptionsProvider :
+    PreviewParameterProvider<List<UserStyleSetting.ListUserStyleSetting.ListOption>> {
+    override val values: Sequence<List<UserStyleSetting.ListUserStyleSetting.ListOption>> =
+        listOf(COLOR_OPTIONS.map {
+            UserStyleSetting.ListUserStyleSetting.ListOption(
+                UserStyleSetting.Option.Id(it), it, null
+            )
+        }).asSequence()
 }
