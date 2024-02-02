@@ -140,6 +140,11 @@ class CwfWatchCanvasRenderer(
     // valid dimensions from the system.
     private var currentWatchFaceSize = Rect(0, 0, 0, 0)
 
+    private var minuteIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+    private var minuteNumberRim = NumberRim()
+    private var secondIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+    private var secondNumberRim = NumberRim()
+
     init {
         scope.launch {
             currentUserStyleRepository.userStyle.collect { userStyle ->
@@ -242,6 +247,11 @@ class CwfWatchCanvasRenderer(
         minuteRefPath.computeBounds(minuteRefTextBounds, true)
         minuteCenterX = bounds.right - minutesTextPadding - minuteRefTextBounds.width() / 2F
         minuteCenterY = bounds.exactCenterY()
+
+        minuteIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+        minuteNumberRim = NumberRim()
+        secondIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+        secondNumberRim = NumberRim()
     }
 
     override fun render(
@@ -438,11 +448,8 @@ class CwfWatchCanvasRenderer(
         // of the secondOfDay modulo the hand interval
         val minuteRotation = millisOfDay.rem(millisPerHour) * 360.0f / millisPerHour
 
-        val minuteIndexRim =
-            IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
         minuteIndexRim.draw(canvas, bounds, minutesIndexPadding, minuteRotation, indexPaint)
 
-        val minuteNumberRim = NumberRim()
         minuteNumberRim.draw(
             canvas, bounds, minutesTextPadding.toFloat(), minuteRotation, minutesTextPaint
         )
@@ -456,11 +463,8 @@ class CwfWatchCanvasRenderer(
                 millisPerMinute
             ) * 360.0f / millisPerMinute
 
-            val secondIndexRim =
-                IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
             secondIndexRim.draw(canvas, bounds, secondsIndexPadding, secondsRotation, indexPaint)
 
-            val secondNumberRim = NumberRim()
             secondNumberRim.draw(
                 canvas, bounds, secondsTextPadding.toFloat(), secondsRotation, secondsTextPaint
             )
