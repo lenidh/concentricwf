@@ -82,12 +82,13 @@ class ColorStyleIdAndResourceIds(
          * options for the user to select a style.
          */
         fun getColorOptionList(context: Context): List<ListUserStyleSetting.ListOption> {
-            val icon = Icon.createWithResource(
-                context,
-                R.drawable.ic_color_style,
-            )
-            icon.setTint(Color.RED)
+
             return COLOR_OPTIONS.map {
+                val icon = Icon.createWithResource(
+                    context,
+                    R.drawable.ic_color_style,
+                )
+                icon.setTint(Color.parseColor(it))
                 ListUserStyleSetting.ListOption(
                     UserStyleSetting.Option.Id(it), it, icon
                 )
