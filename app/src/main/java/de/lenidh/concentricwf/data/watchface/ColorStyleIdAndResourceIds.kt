@@ -23,25 +23,6 @@ import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.UserStyleSetting.ListUserStyleSetting
 import de.lenidh.concentricwf.R
 
-// Defaults for all styles.
-// X_COLOR_STYLE_ID - id in watch face database for each style id.
-// X_COLOR_STYLE_NAME_RESOURCE_ID - String name to display in the user settings UI for the style.
-// X_COLOR_STYLE_ICON_ID - Icon to display in the user settings UI for the style.
-const val AMBIENT_COLOR_STYLE_ID = "ambient_style_id"
-private val AMBIENT_COLOR_STYLE_NAME_RESOURCE_ID = R.string.ambient_style_name
-
-const val RED_COLOR_STYLE_ID = "red_style_id"
-private val RED_COLOR_STYLE_NAME_RESOURCE_ID = R.string.red_style_name
-
-const val GREEN_COLOR_STYLE_ID = "green_style_id"
-private val GREEN_COLOR_STYLE_NAME_RESOURCE_ID = R.string.green_style_name
-
-const val BLUE_COLOR_STYLE_ID = "blue_style_id"
-private val BLUE_COLOR_STYLE_NAME_RESOURCE_ID = R.string.blue_style_name
-
-const val WHITE_COLOR_STYLE_ID = "white_style_id"
-private val WHITE_COLOR_STYLE_NAME_RESOURCE_ID = R.string.white_style_name
-
 val COLOR_OPTIONS = listOf(
     "#FFFFFF", // White
     "#1ABC9C", // Turquoise
