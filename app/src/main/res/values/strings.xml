@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name">Concentric</string>
 
+    <string name="license_info_title">License info</string>
+    <string name="license_info_tp_subtitle">Third party</string>
+    <string name="license_info_tp_artwork">Artwork</string>
+    <string name="license_info_tp_modules">Software modules</string>
+
     <string name="analog_watch_face_name" translatable="false">Alpha Analog</string>
 
     <!-- Name of watchface style category for selecting the color theme [CHAR LIMIT=20] -->

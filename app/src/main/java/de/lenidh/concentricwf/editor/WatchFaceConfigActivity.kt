@@ -1,20 +1,6 @@
-/*
- * Copyright 2021 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package de.lenidh.concentricwf.editor
 
+import android.content.Intent
 import android.graphics.Color.parseColor
 import android.os.Bundle
 import android.util.Log
@@ -24,7 +10,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,13 +34,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
@@ -73,7 +66,10 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.compose.ui.tooling.preview.WearPreviewLargeRound
 import androidx.wear.watchface.style.UserStyleSetting
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+import de.lenidh.concentricwf.BuildConfig
 import de.lenidh.concentricwf.R
+import de.lenidh.concentricwf.data.editor.TP_LICENSE_INFOS
 import de.lenidh.concentricwf.data.watchface.COLOR_OPTIONS
 import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
 import de.lenidh.concentricwf.utils.COMPLICATION_1_BOTTOM_BOUND
@@ -105,9 +101,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * Allows user to edit certain parts of the watch face (color style, ticks displayed, minute arm
- * length) by using the [WatchFaceConfigStateHolder]. (All widgets are disabled until data is
- * loaded.)
+ * Allows user to edit certain parts of the watch face (color style, complications etc.) by using
+ * the [WatchFaceConfigStateHolder]. (All widgets are disabled until data is loaded.)
  */
 class WatchFaceConfigActivity : ComponentActivity() {
     private val stateHolder: WatchFaceConfigStateHolder by lazy {
@@ -194,9 +189,9 @@ private fun createContent(
     onColorSelected: (String) -> Unit = {}
 ) {
     SwipeDismissableNavHost(
-        navController = navController, startDestination = "Editor"
+        navController = navController, startDestination = "editor"
     ) {
-        composable(route = "Editor") {
+        composable(route = "editor") {
             OptionPager(
                 navController = navController,
                 preview = preview,
@@ -204,10 +199,21 @@ private fun createContent(
                 onClick = onClick,
             )
         }
-        composable(route = "ColorPicker") {
+        composable(route = "editor/color") {
             ColorPicker(colorOptions) { id ->
                 navController.popBackStack()
                 onColorSelected(id)
+            }
+        }
+        composable(route = "info/licenses") {
+            LicenseListScreen(navController)
+        }
+        composable(
+            route = "info/licenses/{i}",
+            arguments = listOf(navArgument("i") { type = NavType.IntType })
+        ) { backStackEntry ->
+            backStackEntry.arguments?.let {
+                LicenseTextScreen(it.getInt("i"))
             }
         }
     }
@@ -222,7 +228,7 @@ private fun OptionPager(
     currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
     onClick: (Int) -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = { 2 })
+    val pagerState = rememberPagerState(pageCount = { 3 })
     val pageIndicatorState = remember {
         object : PageIndicatorState {
             override val pageOffset: Float
@@ -269,8 +275,11 @@ private fun OptionPager(
                             .padding(0.dp)
                             .height(32.dp),
                         colors = ChipDefaults.secondaryChipColors(),
-                        onClick = { navController.navigate("ColorPicker") })
+                        onClick = { navController.navigate("editor/color") })
                 }
+            }
+            if (page == 2) {
+                InfoScreen(navController)
             }
             if (page == 1) {
                 ConstraintLayout(
@@ -450,7 +459,188 @@ private fun ColorPicker(
                 }
             }
         }
+    }
+}
 
+@WearPreviewLargeRound
+@Composable
+fun InfoScreen(
+    navController: NavHostController = rememberSwipeDismissableNavController(),
+) {
+    val listState = rememberScalingLazyListState()
+    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
+    val showVignette = mutableStateOf(true)
+
+    Scaffold(
+        modifier = Modifier.background(MaterialTheme.colors.background),
+        positionIndicator = {
+            PositionIndicator(
+                scalingLazyListState = listState, modifier = Modifier
+            )
+        },
+        vignette = {
+            if (showVignette.value) {
+                Vignette(vignettePosition = vignetteState.value)
+            }
+        },
+    ) {
+        ScalingLazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxWidth(),
+            autoCentering = AutoCenteringParams(1)
+        ) {
+            item {
+                Column(
+                    modifier = Modifier.padding(bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.caption1
+                    )
+                    Text(BuildConfig.VERSION_NAME, style = MaterialTheme.typography.caption2)
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
+            }
+            item {
+                Text(stringResource(R.string.license_info_title), style = MaterialTheme.typography.caption1)
+            }
+            /*item {
+                val context = LocalContext.current
+                Chip(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp, 0.dp),
+                    onClick = {
+                        context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
+                        //navController.navigate("info/licenses")
+                    },
+                    label = {
+                        Text("This app")
+                    },
+                    colors = ChipDefaults.secondaryChipColors()
+                )
+            }*/
+            item {
+                Text(stringResource(R.string.license_info_tp_subtitle), style = MaterialTheme.typography.caption2)
+            }
+            item {
+                val context = LocalContext.current
+                Chip(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp, 0.dp),
+                    onClick = {
+                        navController.navigate("info/licenses")
+                    },
+                    label = {
+                        Text(stringResource(R.string.license_info_tp_artwork))
+                    },
+                    colors = ChipDefaults.secondaryChipColors()
+                )
+            }
+            item {
+                val context = LocalContext.current
+                Chip(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp, 0.dp),
+                    onClick = {
+                        context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
+                    },
+                    label = {
+                        Text(stringResource(R.string.license_info_tp_modules))
+                    },
+                    colors = ChipDefaults.secondaryChipColors()
+                )
+            }
+        }
+    }
+}
+
+@WearPreviewLargeRound
+@Composable
+fun LicenseListScreen(
+    navController: NavHostController = rememberSwipeDismissableNavController(),
+) {
+    val listState = rememberScalingLazyListState()
+    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
+    val showVignette = mutableStateOf(true)
+
+    Scaffold(
+        positionIndicator = {
+            PositionIndicator(
+                scalingLazyListState = listState, modifier = Modifier
+            )
+        },
+        vignette = {
+            if (showVignette.value) {
+                Vignette(vignettePosition = vignetteState.value)
+            }
+        },
+    ) {
+        ScalingLazyColumn(
+            contentPadding = PaddingValues(top = 40.dp),
+            state = listState,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            TP_LICENSE_INFOS.withIndex().map { (i, info) ->
+                item {
+                    Chip(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp, 0.dp),
+                        onClick = { navController.navigate("info/licenses/${i}") },
+                        label = {
+                            Text(stringResource(info.subjectId))
+                        },
+                        secondaryLabel = {
+                            Text(stringResource(info.licenseNameId))
+                        },
+                        colors = ChipDefaults.secondaryChipColors()
+                    )
+                }
+            }
+        }
+    }
+}
+
+@WearPreviewLargeRound
+@Composable
+fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::class) i: Int) {
+    val listState = rememberScalingLazyListState()
+    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
+    val showVignette = mutableStateOf(true)
+
+    Scaffold(
+        positionIndicator = {
+            PositionIndicator(
+                scalingLazyListState = listState, modifier = Modifier
+            )
+        },
+        vignette = {
+            if (showVignette.value) {
+                Vignette(vignettePosition = vignetteState.value)
+            }
+        },
+    ) {
+        ScalingLazyColumn(
+            contentPadding = PaddingValues(top = 40.dp, bottom = 100.dp),
+            state = listState,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            val info = TP_LICENSE_INFOS[i]
+            item {
+                Text(stringResource(id = info.subjectId))
+            }
+            item {
+                Text(
+                    stringResource(id = info.licenseTextId),
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+        }
     }
 }
 
@@ -469,4 +659,8 @@ class ColorOptionsProvider :
                 UserStyleSetting.Option.Id(it), it, null
             )
         }).asSequence()
+}
+
+class LicenseTextScreenParameterProvider : PreviewParameterProvider<Int> {
+    override val values: Sequence<Int> = listOf(0).asSequence()
 }
