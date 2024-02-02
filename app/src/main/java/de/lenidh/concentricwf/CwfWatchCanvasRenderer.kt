@@ -41,7 +41,7 @@ import java.time.ZonedDateTime
 import java.time.temporal.ChronoField
 import kotlin.math.floor
 
-private const val FRAME_PERIOD_MS_DEFAULT: Long = 16L
+private const val FRAME_PERIOD_MS_DEFAULT: Long = 32L
 
 class CwfWatchCanvasRenderer(
     private val context: Context,
