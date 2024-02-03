@@ -144,6 +144,7 @@ class CwfWatchCanvasRenderer(
     private var minuteNumberRim = NumberRim()
     private var secondIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
     private var secondNumberRim = NumberRim()
+    private var complicationFrame = ComplicationFrame()
 
     init {
         scope.launch {
@@ -288,7 +289,7 @@ class CwfWatchCanvasRenderer(
 
         if (renderParameters.watchFaceLayers.contains(WatchFaceLayer.COMPLICATIONS)) {
             if (!isLowBitMode) {
-                drawComplicationsBorder(canvas, bounds)
+                complicationFrame.draw(canvas, bounds, complicationSlotsManager, bgPaint, borderPaint)
             }
         }
         // CanvasComplicationDrawable already obeys rendererParameters.
@@ -302,68 +303,6 @@ class CwfWatchCanvasRenderer(
                 complication.render(canvas, zonedDateTime, renderParameters)
             }
         }
-    }
-
-    private fun drawComplicationsBorder(canvas: Canvas, bounds: Rect) {
-        val activeIndices = complicationSlotsManager.complicationSlots
-            .toSortedMap()
-            .entries.withIndex()
-            .filter { (_, entry) -> entry.value.enabled && entry.value.complicationData.value !is EmptyComplicationData }
-            .map { (i, _) -> i }
-
-        if (activeIndices.isEmpty()) return
-        val min = activeIndices.first()
-        val max = activeIndices.last()
-
-        val edgeRadius = bounds.width() * COMPLICATION_RADIUS
-        val width = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - edgeRadius
-        val startAngle = floor(toDegrees(computeComplicationAngle(min)))
-        val endAngle = floor(toDegrees(computeComplicationAngle(max)))
-
-        val m = Matrix()
-
-        val startPath = Path()
-        startPath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
-        startPath.rLineTo(0F, edgeRadius)
-        startPath.rLineTo(-width - borderPaint.strokeWidth, 0F)
-        startPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, 90F, 90F)
-        startPath.close()
-        m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
-        startPath.transform(m)
-
-        val middlePath = Path()
-        middlePath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
-        middlePath.arcTo(
-            bounds.exactCenterX(),
-            bounds.exactCenterY(),
-            bounds.right - bounds.exactCenterX() + borderPaint.strokeWidth,
-            0F,
-            -startAngle + endAngle
-        )
-        middlePath.arcTo(
-            bounds.exactCenterX(),
-            bounds.exactCenterY(),
-            bounds.right - bounds.exactCenterX() - width - edgeRadius,
-            -startAngle + endAngle,
-            startAngle - endAngle
-        )
-        middlePath.close()
-        m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
-        middlePath.transform(m)
-
-        val endPath = Path()
-        endPath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
-        endPath.rLineTo(0F, -edgeRadius)
-        endPath.rLineTo(-width - borderPaint.strokeWidth, 0F)
-        endPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, -90F, -90F)
-        endPath.close()
-        m.setRotate(endAngle, bounds.exactCenterX(), bounds.exactCenterY())
-        endPath.transform(m)
-
-        val path = startPath.or(middlePath).or(endPath)
-
-        canvas.drawPath(path, bgPaint)
-        canvas.drawPath(path, borderPaint)
     }
 
     private fun drawCurrentTime(
@@ -485,6 +424,99 @@ class CwfWatchCanvasRenderer(
         private const val MINUTE_TEXT_SIZE_FRACTION = 0.1F
         private const val MINUTES_TEXT_SIZE_FRACTION = 0.063F
         private const val SECONDS_TEXT_SIZE_FRACTION = 0.063F
+    }
+}
+
+private class ComplicationFrame {
+
+    private var currentWatchBounds = Rect()
+    private var currentMin = -1
+    private var currentMax = -1
+    private var currentStrokeWidth = 0F
+    private var path = Path()
+
+    private fun recalculate(bounds: Rect, min: Int, max: Int, strokeWidth: Float) {
+        Log.d(TAG, """recalculate
+            |    bounds: $currentWatchBounds -> $bounds
+            |    min: $currentMin -> $min
+            |    max: $currentMax -> $max
+            |    strokeWidth: $currentStrokeWidth -> $strokeWidth
+        """.trimMargin())
+
+        currentWatchBounds = Rect(bounds)
+        currentMin = min
+        currentMax = max
+        currentStrokeWidth = strokeWidth
+
+        val edgeRadius = bounds.width() * COMPLICATION_RADIUS
+        val width = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - edgeRadius
+        val startAngle = floor(toDegrees(computeComplicationAngle(min)))
+        val endAngle = floor(toDegrees(computeComplicationAngle(max)))
+
+        val m = Matrix()
+
+        val startPath = Path()
+        startPath.moveTo(bounds.right.toFloat() + strokeWidth, bounds.exactCenterY())
+        startPath.rLineTo(0F, edgeRadius)
+        startPath.rLineTo(-width - strokeWidth, 0F)
+        startPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, 90F, 90F)
+        startPath.close()
+        m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
+        startPath.transform(m)
+
+        val middlePath = Path()
+        middlePath.moveTo(bounds.right.toFloat() + strokeWidth, bounds.exactCenterY())
+        middlePath.arcTo(
+            bounds.exactCenterX(),
+            bounds.exactCenterY(),
+            bounds.right - bounds.exactCenterX() + strokeWidth,
+            0F,
+            -startAngle + endAngle
+        )
+        middlePath.arcTo(
+            bounds.exactCenterX(),
+            bounds.exactCenterY(),
+            bounds.right - bounds.exactCenterX() - width - edgeRadius,
+            -startAngle + endAngle,
+            startAngle - endAngle
+        )
+        middlePath.close()
+        m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
+        middlePath.transform(m)
+
+        val endPath = Path()
+        endPath.moveTo(bounds.right.toFloat() + strokeWidth, bounds.exactCenterY())
+        endPath.rLineTo(0F, -edgeRadius)
+        endPath.rLineTo(-width - strokeWidth, 0F)
+        endPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, -90F, -90F)
+        endPath.close()
+        m.setRotate(endAngle, bounds.exactCenterX(), bounds.exactCenterY())
+        endPath.transform(m)
+
+        path = startPath.or(middlePath).or(endPath)
+    }
+
+    fun draw(canvas: Canvas, bounds: Rect, complicationSlotsManager: ComplicationSlotsManager, bgPaint: Paint, borderPaint: Paint) {
+        val activeIndices = complicationSlotsManager.complicationSlots
+            .toSortedMap()
+            .entries.withIndex()
+            .filter { (_, entry) -> entry.value.enabled && entry.value.complicationData.value !is EmptyComplicationData }
+            .map { (i, _) -> i }
+
+        if (activeIndices.isEmpty()) return
+        val min = activeIndices.first()
+        val max = activeIndices.last()
+
+        if (currentWatchBounds != bounds || currentMin != min || currentMax != max || currentStrokeWidth != borderPaint.strokeWidth) {
+            recalculate(bounds, min, max, borderPaint.strokeWidth)
+        }
+
+        canvas.drawPath(path, bgPaint)
+        canvas.drawPath(path, borderPaint)
+    }
+
+    companion object {
+        private const val TAG = "ComplicationFrame"
     }
 }
 
