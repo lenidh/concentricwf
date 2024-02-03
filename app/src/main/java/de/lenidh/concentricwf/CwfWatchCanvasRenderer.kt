@@ -250,9 +250,7 @@ class CwfWatchCanvasRenderer(
         minuteCenterY = bounds.exactCenterY()
 
         minuteIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
-        minuteNumberRim = NumberRim()
         secondIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
-        secondNumberRim = NumberRim()
     }
 
     override fun render(
@@ -389,7 +387,7 @@ class CwfWatchCanvasRenderer(
         minuteIndexRim.draw(canvas, bounds, minutesIndexPadding, minuteRotation, indexPaint)
 
         minuteNumberRim.draw(
-            canvas, bounds, minutesTextPadding.toFloat(), minuteRotation, minutesTextPaint
+            canvas, bounds, minutesTextPadding, minuteRotation, minutesTextPaint
         )
 
         val drawAmbient = renderParameters.drawMode == DrawMode.AMBIENT
@@ -404,7 +402,7 @@ class CwfWatchCanvasRenderer(
             secondIndexRim.draw(canvas, bounds, secondsIndexPadding, secondsRotation, indexPaint)
 
             secondNumberRim.draw(
-                canvas, bounds, secondsTextPadding.toFloat(), secondsRotation, secondsTextPaint
+                canvas, bounds, secondsTextPadding, secondsRotation, secondsTextPaint
             )
         }
     }
@@ -569,7 +567,7 @@ private class IndexRim(
 
 private class NumberRim {
     private var currentWatchBounds = Rect()
-    private var currentPadding = 0F
+    private var currentPadding = 0
     private var currentPaint = Paint()
 
     private var texts = emptyArray<String>()
@@ -577,7 +575,13 @@ private class NumberRim {
     private var x = 0F
     private var y = 0F
 
-    private fun recalculate(bounds: Rect, padding: Float, paint: Paint) {
+    private fun recalculate(bounds: Rect, padding: Int, paint: Paint) {
+        Log.d(TAG, """recalculate
+            |    bounds: $currentWatchBounds -> $bounds
+            |    padding: $currentPadding -> $padding
+            |    paint: ${currentPaint.fontMetricsInt} -> ${paint.fontMetricsInt}
+        """.trimMargin())
+
         currentWatchBounds = Rect(bounds)
         currentPadding = padding
         currentPaint = Paint(paint)
@@ -605,8 +609,8 @@ private class NumberRim {
         y = bounds.exactCenterY()
     }
 
-    fun draw(canvas: Canvas, bounds: Rect, padding: Float, rotation: Float, paint: Paint) {
-        if (currentWatchBounds != bounds || currentPadding != padding || currentPaint != paint) {
+    fun draw(canvas: Canvas, bounds: Rect, padding: Int, rotation: Float, paint: Paint) {
+        if (currentWatchBounds != bounds || currentPadding != padding || !currentPaint.equalsForTextMeasurement(paint)) {
             recalculate(bounds, padding, paint)
         }
 
@@ -623,6 +627,7 @@ private class NumberRim {
     }
 
     companion object {
+        private const val TAG = "NumberRim"
         private const val STEP = 5
         private const val LIMIT = 60
         private val RANGE = 0 until LIMIT / STEP
