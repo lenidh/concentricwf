@@ -305,31 +305,30 @@ class CwfWatchCanvasRenderer(
     }
 
     private fun drawComplicationsBorder(canvas: Canvas, bounds: Rect) {
-        var min = 5
-        var max = 0
-        for ((i, entry) in complicationSlotsManager.complicationSlots.toSortedMap().entries.withIndex()) {
-            val (_, complication) = entry
-            if (complication.enabled && !(complication.complicationData.value is EmptyComplicationData)) {
-                min = min.coerceAtMost(i)
-                max = max.coerceAtLeast(i)
-            }
-        }
-        min = min.coerceAtMost(max)
+        val activeIndices = complicationSlotsManager.complicationSlots
+            .toSortedMap()
+            .entries.withIndex()
+            .filter { (_, entry) -> entry.value.enabled && entry.value.complicationData.value !is EmptyComplicationData }
+            .map { (i, _) -> i }
 
-        val EDGE_RADIUS = bounds.width() * COMPLICATION_RADIUS
-        val WIDTH = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - EDGE_RADIUS
-        val START_ANGLE = floor(toDegrees(computeComplicationAngle(min)))
-        val END_ANGLE = floor(toDegrees(computeComplicationAngle(max)))
+        if (activeIndices.isEmpty()) return
+        val min = activeIndices.first()
+        val max = activeIndices.last()
+
+        val edgeRadius = bounds.width() * COMPLICATION_RADIUS
+        val width = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - edgeRadius
+        val startAngle = floor(toDegrees(computeComplicationAngle(min)))
+        val endAngle = floor(toDegrees(computeComplicationAngle(max)))
 
         val m = Matrix()
 
         val startPath = Path()
         startPath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
-        startPath.rLineTo(0F, EDGE_RADIUS)
-        startPath.rLineTo(-WIDTH - borderPaint.strokeWidth, 0F)
-        startPath.arcTo(bounds.right - WIDTH, bounds.exactCenterY(), EDGE_RADIUS, 90F, 90F)
+        startPath.rLineTo(0F, edgeRadius)
+        startPath.rLineTo(-width - borderPaint.strokeWidth, 0F)
+        startPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, 90F, 90F)
         startPath.close()
-        m.setRotate(START_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
+        m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
         startPath.transform(m)
 
         val middlePath = Path()
@@ -339,26 +338,26 @@ class CwfWatchCanvasRenderer(
             bounds.exactCenterY(),
             bounds.right - bounds.exactCenterX() + borderPaint.strokeWidth,
             0F,
-            -START_ANGLE + END_ANGLE
+            -startAngle + endAngle
         )
         middlePath.arcTo(
             bounds.exactCenterX(),
             bounds.exactCenterY(),
-            bounds.right - bounds.exactCenterX() - WIDTH - EDGE_RADIUS,
-            -START_ANGLE + END_ANGLE,
-            START_ANGLE - END_ANGLE
+            bounds.right - bounds.exactCenterX() - width - edgeRadius,
+            -startAngle + endAngle,
+            startAngle - endAngle
         )
         middlePath.close()
-        m.setRotate(START_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
+        m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
         middlePath.transform(m)
 
         val endPath = Path()
         endPath.moveTo(bounds.right.toFloat() + borderPaint.strokeWidth, bounds.exactCenterY())
-        endPath.rLineTo(0F, -EDGE_RADIUS)
-        endPath.rLineTo(-WIDTH - borderPaint.strokeWidth, 0F)
-        endPath.arcTo(bounds.right - WIDTH, bounds.exactCenterY(), EDGE_RADIUS, -90F, -90F)
+        endPath.rLineTo(0F, -edgeRadius)
+        endPath.rLineTo(-width - borderPaint.strokeWidth, 0F)
+        endPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, -90F, -90F)
         endPath.close()
-        m.setRotate(END_ANGLE, bounds.exactCenterX(), bounds.exactCenterY())
+        m.setRotate(endAngle, bounds.exactCenterX(), bounds.exactCenterY())
         endPath.transform(m)
 
         val path = startPath.or(middlePath).or(endPath)
