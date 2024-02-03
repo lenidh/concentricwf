@@ -524,7 +524,20 @@ private class IndexRim(
     private val smallIndexWidth: Int,
     private val smallIndexLength: Int
 ) {
-    fun draw(canvas: Canvas, bounds: Rect, padding: Int, rotation: Float, paint: Paint) {
+    private var currentWatchBounds = Rect()
+    private var currentPadding = 0
+
+    private val path = Path()
+
+    private fun recalculate(bounds: Rect, padding: Int) {
+        Log.d(TAG, """recalculate
+            |    bounds: $currentWatchBounds -> $bounds
+            |    padding: $currentPadding -> $padding
+        """.trimMargin())
+
+        currentWatchBounds = Rect(bounds)
+        currentPadding = padding
+
         val largeIndex = Path()
         val right = (bounds.right - padding).toFloat()
         largeIndex.addRoundRect(
@@ -549,19 +562,29 @@ private class IndexRim(
 
         val m = Matrix()
 
-        val rim = Path()
+        path.reset()
         for (i in 0..59) {
             m.setRotate(360F / 60 * i, bounds.centerX().toFloat(), bounds.centerY().toFloat())
             if (i % 5 == 0) {
-                rim.addPath(largeIndex, m)
+                path.addPath(largeIndex, m)
             } else {
-                rim.addPath(smallIndex, m)
+                path.addPath(smallIndex, m)
             }
+        }
+    }
+
+    fun draw(canvas: Canvas, bounds: Rect, padding: Int, rotation: Float, paint: Paint) {
+        if (currentWatchBounds != bounds || currentPadding != padding) {
+            recalculate(bounds, padding)
         }
 
         canvas.withRotation(rotation, bounds.exactCenterX(), bounds.exactCenterY()) {
-            drawPath(rim, paint)
+            drawPath(path, paint)
         }
+    }
+
+    companion object {
+        private const val TAG = "IndexRim"
     }
 }
 
