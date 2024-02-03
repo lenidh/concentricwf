@@ -3,6 +3,7 @@ package de.lenidh.concentricwf.utils
 import android.content.Context
 import android.graphics.Color
 import android.graphics.RectF
+import androidx.core.content.res.ResourcesCompat
 import androidx.wear.watchface.CanvasComplicationFactory
 import androidx.wear.watchface.ComplicationSlot
 import androidx.wear.watchface.ComplicationSlotsManager
@@ -52,8 +53,6 @@ val COMPLICATION_5_LEFT_BOUND = computeComplicationLeftBound(4)
 val COMPLICATION_5_RIGHT_BOUND = computeComplicationRightBound(4)
 val COMPLICATION_5_TOP_BOUND = computeComplicationTopBound(4)
 val COMPLICATION_5_BOTTOM_BOUND = computeComplicationBottomBound(4)
-
-private val DEFAULT_COMPLICATION_STYLE_DRAWABLE_ID = R.drawable.complication_red_style
 
 fun computeComplicationAngle(i: Int): Float {
     return (PI + (2 - i) * COMPLICATION_ANGLE).toFloat()
@@ -134,12 +133,17 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
 fun createComplicationSlotManager(
     context: Context,
     currentUserStyleRepository: CurrentUserStyleRepository,
-    drawableId: Int = DEFAULT_COMPLICATION_STYLE_DRAWABLE_ID
+    drawableId: Int = R.drawable.complication_style
 ): ComplicationSlotsManager {
     val defaultCanvasComplicationFactory = CanvasComplicationFactory { watchState, listener ->
-        CanvasComplicationDrawable(
-            ComplicationDrawable.getDrawable(context, drawableId)!!, watchState, listener
-        )
+        val drawable = ComplicationDrawable.getDrawable(context, drawableId)!!
+        ResourcesCompat.getFont(context, R.font.rubik_regular)?.let {
+            drawable.activeStyle.setTextTypeface(it)
+            drawable.activeStyle.setTitleTypeface(it)
+            drawable.ambientStyle.setTextTypeface(it)
+            drawable.ambientStyle.setTitleTypeface(it)
+        }
+        CanvasComplicationDrawable(drawable, watchState, listener)
     }
 
     val complication1 = ComplicationSlot.createRoundRectComplicationSlotBuilder(

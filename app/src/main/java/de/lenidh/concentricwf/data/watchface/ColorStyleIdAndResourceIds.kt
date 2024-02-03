@@ -18,7 +18,6 @@ package de.lenidh.concentricwf.data.watchface
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.Icon
-import androidx.annotation.DrawableRes
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.UserStyleSetting.ListUserStyleSetting
 import de.lenidh.concentricwf.R
@@ -55,7 +54,6 @@ val COLOR_OPTIONS = listOf(
  * watch face.
  */
 class ColorStyleIdAndResourceIds(
-    @DrawableRes val complicationStyleDrawableId: Int,
     val currentTimeColorId: Color,
     val minutesColorId: Color,
     val secondsColorId: Color,
@@ -68,7 +66,6 @@ class ColorStyleIdAndResourceIds(
          */
         fun getColorStyleConfig(accentColorId: String = COLOR_OPTIONS[0]): ColorStyleIdAndResourceIds {
             return ColorStyleIdAndResourceIds(
-                R.drawable.complication_white_style,
                 Color.valueOf(Color.parseColor("#FFFFFF")),
                 Color.valueOf(Color.parseColor("#767a80")),
                 Color.valueOf(Color.parseColor(accentColorId)),

@@ -19,7 +19,6 @@ import androidx.wear.watchface.Renderer
 import androidx.wear.watchface.WatchState
 import androidx.wear.watchface.complications.data.EmptyComplicationData
 import androidx.wear.watchface.complications.rendering.CanvasComplicationDrawable
-import androidx.wear.watchface.complications.rendering.ComplicationDrawable
 import androidx.wear.watchface.style.CurrentUserStyleRepository
 import androidx.wear.watchface.style.UserStyle
 import androidx.wear.watchface.style.UserStyleSetting
@@ -187,21 +186,17 @@ class CwfWatchCanvasRenderer(
         if (watchFaceData != newWatchFaceData) {
             watchFaceData = newWatchFaceData
 
-            // Recreates Color and ComplicationDrawable from resource ids.
+            // Recreates Color scheme.
             watchFaceColors = convertToWatchFaceColorPalette(
                 context, watchFaceData.activeColorStyle
             )
 
-            // Applies the user chosen complication color scheme changes. ComplicationDrawables for
-            // each of the styles are defined in XML so we need to replace the complication's
-            // drawables.
+            // Apply the color scheme to the complication slots.
             for ((_, complication) in complicationSlotsManager.complicationSlots) {
                 if (complication.renderer is CanvasComplicationDrawable) {
-                    ComplicationDrawable.getDrawable(
-                        context, watchFaceColors.complicationStyleDrawableId
-                    )?.let {
-                        (complication.renderer as CanvasComplicationDrawable).drawable = it
-                    }
+                    val drawable = (complication.renderer as CanvasComplicationDrawable).drawable
+                    drawable.activeStyle.iconColor = watchFaceColors.activeSecondsColor
+                    drawable.ambientStyle.iconColor = watchFaceColors.activeSecondsColor
                 }
             }
         }
@@ -209,7 +204,7 @@ class CwfWatchCanvasRenderer(
 
     override fun onDestroy() {
         Log.d(TAG, "onDestroy()")
-        scope.cancel("AnalogWatchCanvasRenderer scope clear() request")
+        scope.cancel("CwfWatchCanvasRenderer scope clear() request")
         super.onDestroy()
     }
 

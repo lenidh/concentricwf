@@ -1,7 +1,6 @@
 package de.lenidh.concentricwf.data.watchface
 
 import android.content.Context
-import androidx.annotation.DrawableRes
 import androidx.wear.watchface.complications.rendering.ComplicationDrawable
 
 /**
@@ -21,7 +20,6 @@ data class WatchFaceColorPalette(
     val activeMinutesColor: Int,
     val activeSecondsColor: Int,
     val activeBordersColor: Int,
-    @DrawableRes val complicationStyleDrawableId: Int,
     val ambientCurrentTimeColor: Int,
     val ambientMinutesColor: Int,
     val ambientSecondsColor: Int,
@@ -41,8 +39,6 @@ data class WatchFaceColorPalette(
                 activeMinutesColor = activeColorStyle.minutesColorId.toArgb(),
                 activeSecondsColor = activeColorStyle.secondsColorId.toArgb(),
                 activeBordersColor = activeColorStyle.bordersColorId.toArgb(),
-                // Complication color style
-                complicationStyleDrawableId = activeColorStyle.complicationStyleDrawableId,
                 // Ambient colors
                 ambientCurrentTimeColor = activeColorStyle.currentTimeColorId.toArgb(),
                 ambientMinutesColor = activeColorStyle.minutesColorId.toArgb(),
