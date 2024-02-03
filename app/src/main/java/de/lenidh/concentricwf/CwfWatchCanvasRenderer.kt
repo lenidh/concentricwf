@@ -406,9 +406,9 @@ class CwfWatchCanvasRenderer(
         minuteTextPaint.getFontMetrics(fontMetrics)
         val borderRadius = -fontMetrics.ascent
         val borderPath = Path()
-        borderPath.arcTo(minuteCenterX - smallIndexLength, minuteCenterY, borderRadius, 90F, 180F)
+        borderPath.arcTo(minuteCenterX - smallIndexLength / 2F, minuteCenterY, borderRadius, 90F, 180F)
         borderPath.arcTo(
-            if (isLowBitMode) minuteCenterX + smallIndexLength else bounds.right.toFloat(),
+            if (isLowBitMode) minuteCenterX + smallIndexLength / 2F else bounds.right.toFloat(),
             minuteCenterY,
             borderRadius,
             -90F,
