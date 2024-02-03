@@ -36,10 +36,9 @@ android {
     }
     buildFeatures {
         compose = true
-        dataBinding = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
+        kotlinCompilerExtensionVersion = "1.5.8"
     }
     packaging {
         resources {
@@ -51,37 +50,28 @@ android {
 }
 
 dependencies {
-
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    implementation("androidx.percentlayout:percentlayout:1.0.0")
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.1")
+    implementation("androidx.activity:activity-compose:1.8.2")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.wear.compose:compose-material:1.2.0")
-    implementation("androidx.wear.compose:compose-foundation:1.2.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
-    implementation("androidx.activity:activity-compose:1.8.0")
-    implementation("androidx.wear.watchface:watchface:1.1.1")
-    implementation("androidx.wear.watchface:watchface-client:1.1.1")
-    implementation("androidx.wear.watchface:watchface-complications-data:1.1.1")
-    implementation("androidx.wear.watchface:watchface-complications-data-source:1.1.1")
-    implementation("androidx.wear.watchface:watchface-complications-rendering:1.1.1")
-    implementation("androidx.wear.watchface:watchface-data:1.1.1")
-    implementation("androidx.wear.watchface:watchface-editor:1.1.1")
-    implementation("androidx.wear.watchface:watchface-style:1.1.1")
-    implementation("androidx.compose.material:material:1.5.3")
-    implementation("com.google.android.material:material:1.10.0")
-    implementation("androidx.databinding:viewbinding:8.1.2")
-    implementation("androidx.databinding:databinding-compiler:8.1.2")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.wear.compose:compose-foundation:1.3.0")
+    implementation("androidx.wear.compose:compose-material:1.3.0")
     implementation("androidx.wear.compose:compose-navigation:1.3.0")
-    implementation("com.google.android.gms:play-services-oss-licenses:17.0.1")
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation("androidx.wear.compose:compose-ui-tooling:1.3.0")
+    implementation("androidx.wear.watchface:watchface:1.2.1")
+    implementation("androidx.wear.watchface:watchface-complications-data:1.2.1")
+    implementation("androidx.wear.watchface:watchface-complications-rendering:1.2.1")
+    implementation("androidx.wear.watchface:watchface-editor:1.2.1")
+    implementation("androidx.wear.watchface:watchface-style:1.2.1")
+    implementation("com.google.android.gms:play-services-wearable:18.1.0")
+    implementation("com.google.android.gms:play-services-oss-licenses:17.0.1")
+    implementation("com.google.android.material:material:1.11.0")
+
+    debugImplementation("androidx.compose.ui:ui-tooling")
+
+    debugRuntimeOnly("androidx.compose.ui:ui-test-manifest")
+
+    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
 }

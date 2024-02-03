@@ -656,7 +656,7 @@ class ColorOptionsProvider :
     override val values: Sequence<List<UserStyleSetting.ListUserStyleSetting.ListOption>> =
         listOf(COLOR_OPTIONS.map {
             UserStyleSetting.ListUserStyleSetting.ListOption(
-                UserStyleSetting.Option.Id(it), it, null
+                UserStyleSetting.Option.Id(it), it, it, null
             )
         }).asSequence()
 }

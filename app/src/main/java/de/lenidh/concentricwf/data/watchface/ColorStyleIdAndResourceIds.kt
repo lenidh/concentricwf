@@ -90,7 +90,7 @@ class ColorStyleIdAndResourceIds(
                 )
                 icon.setTint(Color.parseColor(it))
                 ListUserStyleSetting.ListOption(
-                    UserStyleSetting.Option.Id(it), it, icon
+                    UserStyleSetting.Option.Id(it), it, it, icon
                 )
             }
         }
