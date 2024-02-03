@@ -478,14 +478,14 @@ class CwfWatchCanvasRenderer(
         private const val SMALL_INDEX_LENGTH_FRACTION = 0.022F
         private const val LARGE_INDEX_WIDTH_FRACTION = 0.005F
         private const val LARGE_INDEX_LENGTH_FRACTION = 0.035F
-        private const val MINUTES_TEXT_PADDING_FRACTION = 0.190F
+        private const val MINUTES_TEXT_PADDING_FRACTION = 0.185F
         private const val MINUTES_INDEX_PADDING_FRACTION = 0.140F
-        private const val SECONDS_TEXT_PADDING_FRACTION = 0.055F
+        private const val SECONDS_TEXT_PADDING_FRACTION = 0.050F
         private const val SECONDS_INDEX_PADDING_FRACTION = 0.005F
-        private const val HOUR_TEXT_SIZE_FRACTION = 0.211F
-        private const val MINUTE_TEXT_SIZE_FRACTION = 0.079F
-        private const val MINUTES_TEXT_SIZE_FRACTION = 0.053F
-        private const val SECONDS_TEXT_SIZE_FRACTION = 0.053F
+        private const val HOUR_TEXT_SIZE_FRACTION = 0.235F
+        private const val MINUTE_TEXT_SIZE_FRACTION = 0.1F
+        private const val MINUTES_TEXT_SIZE_FRACTION = 0.063F
+        private const val SECONDS_TEXT_SIZE_FRACTION = 0.063F
     }
 }
 
