@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.text.format.DateFormat
 import android.util.Log
 import android.view.SurfaceHolder
 import androidx.core.graphics.and
@@ -317,8 +318,10 @@ class CwfWatchCanvasRenderer(
     private fun drawCurrentTime(
         canvas: Canvas, bounds: Rect, zonedDateTime: ZonedDateTime
     ) {
+        val is24HourFormat = DateFormat.is24HourFormat(context)
         val time = zonedDateTime.toLocalTime()
-        val hourOfDay = time.get(ChronoField.HOUR_OF_DAY)
+        val hourOfDay =
+            if (is24HourFormat) time.get(ChronoField.HOUR_OF_DAY) else time.get(ChronoField.CLOCK_HOUR_OF_AMPM)
         val minuteOfHour = time.get(ChronoField.MINUTE_OF_HOUR)
         currentTime.draw(canvas, bounds, hourOfDay, minuteOfHour, hourTextPaint, minuteTextPaint)
     }
