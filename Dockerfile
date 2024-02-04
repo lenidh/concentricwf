@@ -1,1 +1,1 @@
-FROM debian:bookworm
+FROM oracle/openjdk:17

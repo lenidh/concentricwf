@@ -11,7 +11,7 @@ pipeline {
                 }
             }
             steps {
-                sh "./gradlew"
+                sh "sh ./gradlew"
             }
         }
     }
