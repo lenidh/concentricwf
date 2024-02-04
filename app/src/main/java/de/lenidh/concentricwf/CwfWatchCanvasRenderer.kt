@@ -490,7 +490,7 @@ private class MinuteFrame(
     private fun recalculate(bounds: Rect, minuteTextPaint: Paint, isLowBitMode: Boolean) {
         Log.d(TAG, """recalculate
             |    bounds: $currentWatchBounds -> $bounds
-            |    minuteTextPaint: $currentMinuteTextPaint -> $minuteTextPaint
+            |    minuteTextPaint: ${currentMinuteTextPaint.fontMetricsInt} -> ${minuteTextPaint.fontMetricsInt}
             |    isLowBitMode: $currentIsLowBitMode -> $isLowBitMode
         """.trimMargin())
 
@@ -570,6 +570,7 @@ private class ComplicationFrame {
         currentStrokeWidth = strokeWidth
 
         val edgeRadius = bounds.width() * COMPLICATION_RADIUS
+        val padding = bounds.width() * COMPLICATION_OFFSET
         val width = bounds.width() * 2 * (COMPLICATION_RADIUS + COMPLICATION_OFFSET) - edgeRadius
         val startAngle = floor(toDegrees(computeComplicationAngle(min)))
         val endAngle = floor(toDegrees(computeComplicationAngle(max)))
@@ -578,9 +579,10 @@ private class ComplicationFrame {
 
         val startPath = Path()
         startPath.moveTo(bounds.right.toFloat() + strokeWidth, bounds.exactCenterY())
-        startPath.rLineTo(0F, edgeRadius)
+        startPath.rLineTo(0F, edgeRadius + padding)
         startPath.rLineTo(-width - strokeWidth, 0F)
-        startPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, 90F, 90F)
+        startPath.arcTo(bounds.right - width, bounds.exactCenterY() + padding, edgeRadius, 90F, 90F)
+        startPath.rLineTo(0F, -padding)
         startPath.close()
         m.setRotate(startAngle, bounds.exactCenterX(), bounds.exactCenterY())
         startPath.transform(m)
@@ -607,9 +609,10 @@ private class ComplicationFrame {
 
         val endPath = Path()
         endPath.moveTo(bounds.right.toFloat() + strokeWidth, bounds.exactCenterY())
-        endPath.rLineTo(0F, -edgeRadius)
+        endPath.rLineTo(0F, -edgeRadius - padding)
         endPath.rLineTo(-width - strokeWidth, 0F)
-        endPath.arcTo(bounds.right - width, bounds.exactCenterY(), edgeRadius, -90F, -90F)
+        endPath.arcTo(bounds.right - width, bounds.exactCenterY() - padding, edgeRadius, -90F, -90F)
+        endPath.rLineTo(0F, padding)
         endPath.close()
         m.setRotate(endAngle, bounds.exactCenterX(), bounds.exactCenterY())
         endPath.transform(m)
