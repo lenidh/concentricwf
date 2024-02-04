@@ -10,8 +10,10 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -71,6 +72,7 @@ import de.lenidh.concentricwf.BuildConfig
 import de.lenidh.concentricwf.R
 import de.lenidh.concentricwf.data.editor.TP_LICENSE_INFOS
 import de.lenidh.concentricwf.data.watchface.COLOR_OPTIONS
+import de.lenidh.concentricwf.data.watchface.FONT_OPTIONS
 import de.lenidh.concentricwf.data.watchface.WatchFaceUserStyle
 import de.lenidh.concentricwf.utils.COMPLICATION_1_BOTTOM_BOUND
 import de.lenidh.concentricwf.utils.COMPLICATION_1_ID
@@ -114,6 +116,7 @@ class WatchFaceConfigActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
     private lateinit var preview: MutableState<ImageBitmap?>
     private lateinit var currentColorId: MutableState<String>
+    private lateinit var currentFontId: MutableState<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,20 +124,27 @@ class WatchFaceConfigActivity : ComponentActivity() {
 
         preview = mutableStateOf(ImageBitmap.imageResource(resources, R.drawable.watch_preview))
         currentColorId = mutableStateOf("")
+        currentFontId = mutableStateOf("")
 
         setTheme(android.R.style.Theme_DeviceDefault)
 
         val colorOptions = WatchFaceUserStyle.getColorOptionList(this)
+        val fontOptions = WatchFaceUserStyle.getFontOptionList(this)
 
         setContent {
             navController = rememberSwipeDismissableNavController()
 
-            MaterialTheme() {
-                createContent(preview = preview,
+            MaterialTheme {
+                Editor(preview = preview,
                     colorOptions = colorOptions,
+                    fontOptions = fontOptions,
                     currentColorId = currentColorId,
+                    currentFontId = currentFontId,
                     onColorSelected = { id ->
                         stateHolder.setColorStyle(id)
+                    },
+                    onFontSelected = { id ->
+                        stateHolder.setFontStyle(id)
                     },
                     onClick = { id ->
                         stateHolder.setComplication(id)
@@ -153,6 +163,7 @@ class WatchFaceConfigActivity : ComponentActivity() {
                         Log.d(TAG, "StateFlow Success.")
                         updateWatchFaceEditorPreview(uiState.userStylesAndPreview)
                         currentColorId.value = uiState.userStylesAndPreview.colorStyleId
+                        currentFontId.value = uiState.userStylesAndPreview.fontStyleId
                     }
 
                     is WatchFaceConfigStateHolder.EditWatchFaceUiState.Error -> {
@@ -171,6 +182,9 @@ class WatchFaceConfigActivity : ComponentActivity() {
         val colorStyleId: String = userStylesAndPreview.colorStyleId
         Log.d(TAG, "\tselected color style: $colorStyleId")
 
+        val fontStyleId: String = userStylesAndPreview.fontStyleId
+        Log.d(TAG, "\tselected font style: $fontStyleId")
+
         preview.value = userStylesAndPreview.previewImage.asImageBitmap()
     }
 
@@ -180,13 +194,16 @@ class WatchFaceConfigActivity : ComponentActivity() {
 }
 
 @Composable
-private fun createContent(
+private fun Editor(
     navController: NavHostController = rememberSwipeDismissableNavController(),
     preview: MutableState<ImageBitmap?> = mutableStateOf(null),
     colorOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption> = emptyList(),
+    fontOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption> = emptyList(),
     currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
+    currentFontId: MutableState<String> = mutableStateOf(FONT_OPTIONS[0].id),
     onClick: (Int) -> Unit = {},
-    onColorSelected: (String) -> Unit = {}
+    onColorSelected: (String) -> Unit = {},
+    onFontSelected: (String) -> Unit = {},
 ) {
     SwipeDismissableNavHost(
         navController = navController, startDestination = "editor"
@@ -196,6 +213,7 @@ private fun createContent(
                 navController = navController,
                 preview = preview,
                 currentColorId = currentColorId,
+                currentFontId = currentFontId,
                 onClick = onClick,
             )
         }
@@ -203,6 +221,12 @@ private fun createContent(
             ColorPicker(colorOptions) { id ->
                 navController.popBackStack()
                 onColorSelected(id)
+            }
+        }
+        composable(route = "editor/font") {
+            FontPicker(fontOptions) { id ->
+                navController.popBackStack()
+                onFontSelected(id)
             }
         }
         composable(route = "info/licenses") {
@@ -226,9 +250,10 @@ private fun OptionPager(
     navController: NavHostController = rememberSwipeDismissableNavController(),
     preview: MutableState<ImageBitmap?> = mutableStateOf(null),
     currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
+    currentFontId: MutableState<String> = mutableStateOf(FONT_OPTIONS[0].id),
     onClick: (Int) -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = { 3 })
+    val pagerState = rememberPagerState(pageCount = { 4 })
     val pageIndicatorState = remember {
         object : PageIndicatorState {
             override val pageOffset: Float
@@ -257,31 +282,22 @@ private fun OptionPager(
             pageSize = PageSize.Fill,
         ) { page ->
             if (page == 0) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(bottom = 24.dp),
-                    contentAlignment = Alignment.BottomCenter,
-                ) {
-                    CompactChip(label = {
-                        val text by remember { currentColorId }
-                        Text(
-                            text = text,
-                            modifier = Modifier.padding(0.dp),
-                            style = MaterialTheme.typography.caption2
-                        )
-                    },
-                        modifier = Modifier
-                            .padding(0.dp)
-                            .height(32.dp),
-                        colors = ChipDefaults.secondaryChipColors(),
-                        onClick = { navController.navigate("editor/color") })
-                }
-            }
-            if (page == 2) {
-                InfoScreen(navController)
+                val text by remember { currentColorId }
+                OptionPage(
+                    labelText = stringResource(R.string.colors_style_setting),
+                    valueText = text,
+                    onStartPicker = { navController.navigate("editor/color") })
             }
             if (page == 1) {
+                val optionId by remember { currentFontId }
+                val selectedOption = WatchFaceUserStyle.getFontOption(optionId)
+                val text = selectedOption?.let { stringResource(it.nameId) } ?: "???"
+                OptionPage(
+                    labelText = stringResource(R.string.fonts_style_setting),
+                    valueText = text,
+                    onStartPicker = { navController.navigate("editor/font") })
+            }
+            if (page == 2) {
                 ConstraintLayout(
                     modifier = Modifier.fillMaxSize(),
                 ) {
@@ -407,19 +423,69 @@ private fun OptionPager(
                     ) {}
                 }
             }
+            if (page == 3) {
+                InfoScreen(navController)
+            }
         }
     }
 }
 
 @WearPreviewLargeRound
 @Composable
-private fun ColorPicker(
-    @PreviewParameter(ColorOptionsProvider::class) colorOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
-    onClick: (String) -> Unit = {}
+private fun OptionPagePreview() {
+    OptionPage(labelText = "Color", valueText = "Amber") {}
+}
+
+@Composable
+private fun OptionPage(valueText: String, labelText: String = "", onStartPicker: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = 24.dp),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(text = labelText, style = MaterialTheme.typography.caption1)
+            CompactChip(label = {
+                Text(
+                    text = valueText,
+                    modifier = Modifier.padding(0.dp),
+                    style = MaterialTheme.typography.caption2
+                )
+            },
+                modifier = Modifier
+                    .padding(0.dp)
+                    .height(32.dp),
+                colors = ChipDefaults.secondaryChipColors(),
+                onClick = { onStartPicker() })
+
+        }
+    }
+}
+
+@WearPreviewLargeRound
+@Composable
+private fun ListOptionPickerPreview() {
+    val options = COLOR_OPTIONS.map {
+        UserStyleSetting.ListUserStyleSetting.ListOption(
+            UserStyleSetting.Option.Id(it), it, it, null
+        )
+    }.toList()
+    ListOptionPicker(
+        options = options,
+        labelProvider = { optionId -> { Text(text = optionId) } },
+        iconProvider = { optionId -> { ColorPreviewIcon(optionId) } },
+        onSelected = {})
+}
+
+@Composable
+private fun ListOptionPicker(
+    options: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
+    labelProvider: (String) -> (@Composable RowScope.() -> Unit),
+    onSelected: (String) -> Unit,
+    iconProvider: ((String) -> (@Composable BoxScope.() -> Unit))? = null,
 ) {
     val listState = rememberScalingLazyListState()
-    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
-    val showVignette = mutableStateOf(true)
 
     Scaffold(
         positionIndicator = {
@@ -428,9 +494,7 @@ private fun ColorPicker(
             )
         },
         vignette = {
-            if (showVignette.value) {
-                Vignette(vignettePosition = vignetteState.value)
-            }
+            Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
         ScalingLazyColumn(
@@ -438,22 +502,15 @@ private fun ColorPicker(
             state = listState,
             modifier = Modifier.fillMaxWidth()
         ) {
-            colorOptions.map {
+            options.map {
                 item {
                     Chip(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(24.dp, 0.dp),
-                        onClick = { onClick(it.id.toString()) },
-                        label = {
-                            Text(it.displayName.toString())
-                        },
-                        icon = {
-                            val color = Color(parseColor(it.id.toString()))
-                            Circle(
-                                color = color, modifier = Modifier.size(ChipDefaults.IconSize)
-                            )
-                        },
+                        onClick = { onSelected(it.id.toString()) },
+                        label = labelProvider(it.id.toString()),
+                        icon = iconProvider?.invoke(it.id.toString()),
                         colors = ChipDefaults.secondaryChipColors()
                     )
                 }
@@ -462,14 +519,39 @@ private fun ColorPicker(
     }
 }
 
+@Composable
+private fun ColorPicker(
+    options: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
+    onSelected: (String) -> Unit
+) {
+    ListOptionPicker(
+        options = options,
+        labelProvider = { optionId -> { Text(optionId) } },
+        iconProvider = { optionId -> { ColorPreviewIcon(optionId) } },
+        onSelected = onSelected)
+}
+
+@Composable
+private fun FontPicker(
+    options: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
+    onSelected: (String) -> Unit,
+) {
+    ListOptionPicker(
+        options = options,
+        labelProvider = { optionId -> {
+            val option = WatchFaceUserStyle.getFontOption(optionId)
+            val text = option?.let { stringResource(it.nameId) } ?: "???"
+            Text(text)
+        } },
+        onSelected = onSelected)
+}
+
 @WearPreviewLargeRound
 @Composable
-fun InfoScreen(
+private fun InfoScreen(
     navController: NavHostController = rememberSwipeDismissableNavController(),
 ) {
     val listState = rememberScalingLazyListState()
-    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
-    val showVignette = mutableStateOf(true)
 
     Scaffold(
         modifier = Modifier.background(MaterialTheme.colors.background),
@@ -479,9 +561,7 @@ fun InfoScreen(
             )
         },
         vignette = {
-            if (showVignette.value) {
-                Vignette(vignettePosition = vignetteState.value)
-            }
+            Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
         ScalingLazyColumn(
@@ -492,7 +572,8 @@ fun InfoScreen(
             item {
                 Column(
                     modifier = Modifier.padding(bottom = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
                         stringResource(R.string.app_name),
                         style = MaterialTheme.typography.caption1
@@ -504,7 +585,10 @@ fun InfoScreen(
                 Spacer(modifier = Modifier.height(10.dp))
             }
             item {
-                Text(stringResource(R.string.license_info_title), style = MaterialTheme.typography.caption1)
+                Text(
+                    stringResource(R.string.license_info_title),
+                    style = MaterialTheme.typography.caption1
+                )
             }
             /*item {
                 val context = LocalContext.current
@@ -523,10 +607,12 @@ fun InfoScreen(
                 )
             }*/
             item {
-                Text(stringResource(R.string.license_info_tp_subtitle), style = MaterialTheme.typography.caption2)
+                Text(
+                    stringResource(R.string.license_info_tp_subtitle),
+                    style = MaterialTheme.typography.caption2
+                )
             }
             item {
-                val context = LocalContext.current
                 Chip(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -561,12 +647,10 @@ fun InfoScreen(
 
 @WearPreviewLargeRound
 @Composable
-fun LicenseListScreen(
+private fun LicenseListScreen(
     navController: NavHostController = rememberSwipeDismissableNavController(),
 ) {
     val listState = rememberScalingLazyListState()
-    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
-    val showVignette = mutableStateOf(true)
 
     Scaffold(
         positionIndicator = {
@@ -575,9 +659,7 @@ fun LicenseListScreen(
             )
         },
         vignette = {
-            if (showVignette.value) {
-                Vignette(vignettePosition = vignetteState.value)
-            }
+            Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
         ScalingLazyColumn(
@@ -608,10 +690,8 @@ fun LicenseListScreen(
 
 @WearPreviewLargeRound
 @Composable
-fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::class) i: Int) {
+private fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::class) i: Int) {
     val listState = rememberScalingLazyListState()
-    val vignetteState = mutableStateOf(VignettePosition.TopAndBottom)
-    val showVignette = mutableStateOf(true)
 
     Scaffold(
         positionIndicator = {
@@ -620,9 +700,7 @@ fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::clas
             )
         },
         vignette = {
-            if (showVignette.value) {
-                Vignette(vignettePosition = vignetteState.value)
-            }
+            Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
         ScalingLazyColumn(
@@ -645,22 +723,18 @@ fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::clas
 }
 
 @Composable
-fun Circle(color: Color, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.composed {
-        clip(CircleShape).background(color)
-    })
+private fun ColorPreviewIcon(rgbaString: String) {
+    val color = Color(parseColor(rgbaString))
+    Circle(
+        color = color, modifier = Modifier.size(ChipDefaults.IconSize)
+    )
 }
 
-class ColorOptionsProvider :
-    PreviewParameterProvider<List<UserStyleSetting.ListUserStyleSetting.ListOption>> {
-    override val values: Sequence<List<UserStyleSetting.ListUserStyleSetting.ListOption>> =
-        listOf(COLOR_OPTIONS.map {
-            UserStyleSetting.ListUserStyleSetting.ListOption(
-                UserStyleSetting.Option.Id(it), it, it, null
-            )
-        }).asSequence()
+@Composable
+private fun Circle(color: Color, modifier: Modifier = Modifier) {
+    Box(modifier = modifier.clip(CircleShape).background(color))
 }
 
-class LicenseTextScreenParameterProvider : PreviewParameterProvider<Int> {
+private class LicenseTextScreenParameterProvider : PreviewParameterProvider<Int> {
     override val values: Sequence<Int> = listOf(0).asSequence()
 }

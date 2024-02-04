@@ -32,6 +32,7 @@ import de.lenidh.concentricwf.utils.COMPLICATION_2_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_3_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_4_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_5_ID
+import de.lenidh.concentricwf.utils.FONT_STYLE_SETTING
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -69,6 +70,7 @@ class WatchFaceConfigStateHolder(
 
     // Keys from Watch Face Data Structure
     private lateinit var colorStyleKey: UserStyleSetting.ListUserStyleSetting
+    private lateinit var fontStyleKey: UserStyleSetting.ListUserStyleSetting
 
     val uiState: StateFlow<EditWatchFaceUiState> =
         flow<EditWatchFaceUiState> {
@@ -103,6 +105,9 @@ class WatchFaceConfigStateHolder(
                 COLOR_STYLE_SETTING -> {
                     colorStyleKey = setting as UserStyleSetting.ListUserStyleSetting
                 }
+                FONT_STYLE_SETTING -> {
+                    fontStyleKey = setting as UserStyleSetting.ListUserStyleSetting
+                }
             }
         }
     }
@@ -127,11 +132,13 @@ class WatchFaceConfigStateHolder(
 
         val colorStyle =
             userStyle[colorStyleKey] as UserStyleSetting.ListUserStyleSetting.ListOption
+        val fontStyle = userStyle[fontStyleKey] as UserStyleSetting.ListUserStyleSetting.ListOption
 
-        Log.d(TAG, "/new values: $colorStyle")
+        Log.d(TAG, "/new values: $colorStyle $fontStyle")
 
         return UserStylesAndPreview(
             colorStyleId = colorStyle.id.toString(),
+            fontStyleId = fontStyle.id.toString(),
             previewImage = bitmap
         )
     }
@@ -184,6 +191,28 @@ class WatchFaceConfigStateHolder(
         }
     }
 
+    fun setFontStyle(newFontStyleId: String) {
+        val userStyleSettingList = editorSession.userStyleSchema.userStyleSettings
+
+        // Loops over all UserStyleSettings (basically the keys in the map) to find the setting for
+        // the font style (which contains all the possible options for that style setting).
+        for (userStyleSetting in userStyleSettingList) {
+            if (userStyleSetting.id == UserStyleSetting.Id(FONT_STYLE_SETTING)) {
+                val fontUserStyleSetting =
+                    userStyleSetting as UserStyleSetting.ListUserStyleSetting
+
+                // Loops over the UserStyleSetting.Option fonts (all possible values for the key)
+                // to find the matching option, and if it exists, sets it as the font style.
+                for (fontOptions in fontUserStyleSetting.options) {
+                    if (fontOptions.id.toString() == newFontStyleId) {
+                        setUserStyleOption(fontStyleKey, fontOptions)
+                        return
+                    }
+                }
+            }
+        }
+    }
+
     // Saves User Style Option change back to the back to the EditorSession.
     // Note: The UI widgets in the Activity that can trigger this method (through the 'set' methods)
     // will only be enabled after the EditorSession has been initialized.
@@ -211,6 +240,7 @@ class WatchFaceConfigStateHolder(
 
     data class UserStylesAndPreview(
         val colorStyleId: String,
+        val fontStyleId: String,
         val previewImage: Bitmap
     )
 

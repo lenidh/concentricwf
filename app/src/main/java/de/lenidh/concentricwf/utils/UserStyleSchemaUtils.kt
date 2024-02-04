@@ -11,6 +11,7 @@ import de.lenidh.concentricwf.data.watchface.WatchFaceUserStyle
 // values in the renderer and if new, we will update the database and update the watch face
 // being rendered.
 const val COLOR_STYLE_SETTING = "color_style_setting"
+const val FONT_STYLE_SETTING = "font_style_setting"
 
 /*
  * Creates user styles in the settings activity associated with the watch face, so users can
@@ -34,9 +35,26 @@ fun createUserStyleSchema(context: Context): UserStyleSchema {
             )
         )
 
+    // Allows user to change the font of the watch face
+    val fontStyleSetting =
+        UserStyleSetting.ListUserStyleSetting(
+            UserStyleSetting.Id(FONT_STYLE_SETTING),
+            context.resources,
+            R.string.fonts_style_setting,
+            R.string.fonts_style_setting_description,
+            null,
+            WatchFaceUserStyle.getFontOptionList(context),
+            listOf(
+                WatchFaceLayer.BASE,
+                WatchFaceLayer.COMPLICATIONS,
+                WatchFaceLayer.COMPLICATIONS_OVERLAY
+            )
+        )
+
     return UserStyleSchema(
         listOf(
             colorStyleSetting,
+            fontStyleSetting,
         )
     )
 }

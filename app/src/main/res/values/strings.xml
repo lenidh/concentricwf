@@ -6,11 +6,23 @@
     <string name="license_info_tp_artwork">Artwork</string>
     <string name="license_info_tp_modules">Software modules</string>
 
+    <!-- Names of font options -->
+    <string name="font_option_rubik">Rubik</string>
+    <string name="font_option_manrope">Manrope</string>
+    <string name="font_option_ebgaradmond">EB Garamond</string>
+    <string name="font_option_chakrapetch">Chakra Petch</string>
+
     <!-- Name of watchface style category for selecting the color theme [CHAR LIMIT=20] -->
-    <string name="colors_style_setting">Colors</string>
+    <string name="colors_style_setting">Color</string>
 
     <!-- Subtitle for the menu option to select the watch face color theme -->
     <string name="colors_style_setting_description">Accent color</string>
+
+    <!-- Name of watchface style category for selecting the font [CHAR LIMIT=20] -->
+    <string name="fonts_style_setting">Font</string>
+
+    <!-- Subtitle for the menu option to select the watch face font -->
+    <string name="fonts_style_setting_description">Text font</string>
 
     <!-- Values for WatchFaceConfigActivity -->
     <!-- Title for config activity for watch face (settings). -->

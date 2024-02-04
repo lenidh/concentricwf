@@ -2,7 +2,10 @@ package de.lenidh.concentricwf.data.watchface
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.Icon
+import android.util.Log
+import androidx.wear.compose.material.contentColorFor
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.UserStyleSetting.ListUserStyleSetting
 import de.lenidh.concentricwf.R
@@ -29,6 +32,15 @@ val COLOR_OPTIONS = listOf(
     "#7F8C8D", // Asbestos
 )
 
+val FONT_OPTIONS = listOf(
+    FontOption("1", R.font.rubik_regular, R.string.font_option_rubik),
+    FontOption("2", R.font.manrope_regular, R.string.font_option_manrope),
+    FontOption("3", R.font.ebgaramond_medium, R.string.font_option_ebgaradmond),
+    FontOption("4", R.font.chakrapetch_regular, R.string.font_option_chakrapetch),
+)
+
+data class FontOption(val id: String, val fontId: Int, val nameId: Int)
+
 /**
  * Represents watch face style options the user can select.
  *
@@ -38,15 +50,20 @@ val COLOR_OPTIONS = listOf(
  */
 class WatchFaceUserStyle(
     val accentColor: Color,
+    val fontId: Int,
 ) {
 
     companion object {
         /**
-         * Translates the string id to the correct ColorStyleIdAndResourceIds object.
+         * Translates the string id to the correct WatchFaceUserStyle object.
          */
-        fun getColorStyleConfig(accentColorId: String = COLOR_OPTIONS[0]): WatchFaceUserStyle {
+        fun getStyleConfig(
+            accentColorId: String? = null,
+            fontOptionId: String? = null
+        ): WatchFaceUserStyle {
             return WatchFaceUserStyle(
-                Color.valueOf(Color.parseColor(accentColorId)),
+                Color.valueOf(Color.parseColor(accentColorId ?: COLOR_OPTIONS[0])),
+                fontOptionId?.let { getFontOption(it)?.fontId } ?: FONT_OPTIONS[0].fontId,
             )
         }
 
@@ -67,6 +84,22 @@ class WatchFaceUserStyle(
                     UserStyleSetting.Option.Id(it), it, it, icon
                 )
             }
+        }
+
+        fun getFontOptionList(context: Context): List<ListUserStyleSetting.ListOption> {
+            return FONT_OPTIONS.map { option ->
+                ListUserStyleSetting.ListOption(
+                    UserStyleSetting.Option.Id(option.id),
+                    context.resources,
+                    option.nameId,
+                    option.nameId,
+                    null
+                )
+            }
+        }
+
+        fun getFontOption(optionId: String): FontOption? {
+            return FONT_OPTIONS.find { option -> option.id == optionId }
         }
     }
 }

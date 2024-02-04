@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import android.graphics.Typeface
 import android.text.format.DateFormat
 import android.util.Log
 import android.view.SurfaceHolder
@@ -30,6 +31,7 @@ import de.lenidh.concentricwf.data.watchface.WatchFaceUserStyle
 import de.lenidh.concentricwf.utils.COLOR_STYLE_SETTING
 import de.lenidh.concentricwf.utils.COMPLICATION_OFFSET
 import de.lenidh.concentricwf.utils.COMPLICATION_RADIUS
+import de.lenidh.concentricwf.utils.FONT_STYLE_SETTING
 import de.lenidh.concentricwf.utils.computeComplicationAngle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +44,6 @@ import java.time.temporal.ChronoField
 import kotlin.math.floor
 
 private const val FRAME_PERIOD_MS_DEFAULT: Long = 32L
-private val FONT_RESOURCE_DEFAULT = R.font.rubik_regular
 
 class CwfWatchCanvasRenderer(
     private val context: Context,
@@ -65,8 +66,6 @@ class CwfWatchCanvasRenderer(
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private val watchTypeface = context.resources.getFont(FONT_RESOURCE_DEFAULT)
-
     // Represents all data needed to render the watch face. All value defaults are constants. Only
     // three values are changeable by the user (color scheme, ticks being rendered, and length of
     // the minute arm). Those dynamic values are saved in the watch face APIs and we update those
@@ -77,6 +76,8 @@ class CwfWatchCanvasRenderer(
     private var watchFaceColors = convertToWatchFaceColorPalette(
         context, watchFaceData.userStyle
     )
+
+    private var watchTypeface = convertToWatchTypeface(watchFaceData.userStyle)
 
     private val bgPaint = Paint().apply {
         isAntiAlias = true
@@ -92,31 +93,23 @@ class CwfWatchCanvasRenderer(
 
     private val hourTextPaint = Paint().apply {
         isAntiAlias = true
-        textSize = 32F
         textAlign = Paint.Align.CENTER
-        typeface = watchTypeface
         color = context.resources.getColor(R.color.hour_default, null)
     }
 
     private val minuteTextPaint = Paint().apply {
         isAntiAlias = true
-        textSize = 18F
         textAlign = Paint.Align.CENTER
-        typeface = watchTypeface
         color = context.resources.getColor(R.color.minute_default, null)
     }
 
     private val minutesTextPaint = Paint().apply {
         isAntiAlias = true
-        textSize = 12F
-        typeface = watchTypeface
         color = context.resources.getColor(R.color.minutes_default, null)
     }
 
     private val secondsTextPaint = Paint().apply {
         isAntiAlias = true
-        textSize = 12F
-        typeface = watchTypeface
         color = context.resources.getColor(R.color.seconds_default, null)
     }
 
@@ -178,6 +171,9 @@ class CwfWatchCanvasRenderer(
 
         var newWatchFaceData: WatchFaceData = watchFaceData
 
+        var colorOptionId: String? = null;
+        var fontOptionId: String? = null;
+
         // Loops through user style and applies new values to watchFaceData.
         for (options in userStyle) {
             when (options.key.id.toString()) {
@@ -185,14 +181,18 @@ class CwfWatchCanvasRenderer(
                     val listOption =
                         options.value as UserStyleSetting.ListUserStyleSetting.ListOption
 
-                    newWatchFaceData = newWatchFaceData.copy(
-                        userStyle = WatchFaceUserStyle.getColorStyleConfig(
-                            listOption.id.toString()
-                        )
-                    )
+                    colorOptionId = listOption.id.toString()
+                }
+                FONT_STYLE_SETTING -> {
+                    val listOption =
+                        options.value as UserStyleSetting.ListUserStyleSetting.ListOption
+
+                    fontOptionId = listOption.id.toString()
                 }
             }
         }
+
+        newWatchFaceData = newWatchFaceData.copy(userStyle = WatchFaceUserStyle.getStyleConfig(colorOptionId, fontOptionId))
 
         // Only updates if something changed.
         if (watchFaceData != newWatchFaceData) {
@@ -202,6 +202,7 @@ class CwfWatchCanvasRenderer(
             watchFaceColors = convertToWatchFaceColorPalette(
                 context, watchFaceData.userStyle
             )
+            watchTypeface = convertToWatchTypeface(watchFaceData.userStyle)
 
             // Apply the color scheme to the complication slots.
             for ((_, complication) in complicationSlotsManager.complicationSlots) {
@@ -210,12 +211,20 @@ class CwfWatchCanvasRenderer(
                     drawable.activeStyle.titleColor = watchFaceColors.activeComplicationTextColor
                     drawable.activeStyle.textColor = watchFaceColors.activeComplicationTextColor
                     drawable.activeStyle.iconColor = watchFaceColors.activeComplicationIconColor
+                    drawable.activeStyle.setTitleTypeface(watchTypeface)
+                    drawable.activeStyle.setTextTypeface(watchTypeface)
                     drawable.ambientStyle.titleColor = watchFaceColors.ambientComplicationTextColor
                     drawable.ambientStyle.textColor = watchFaceColors.ambientComplicationTextColor
                     drawable.ambientStyle.iconColor = watchFaceColors.ambientComplicationIconColor
+                    drawable.ambientStyle.setTitleTypeface(watchTypeface)
+                    drawable.ambientStyle.setTextTypeface(watchTypeface)
                 }
             }
         }
+    }
+
+    private fun convertToWatchTypeface(userStyle: WatchFaceUserStyle): Typeface {
+        return context.resources.getFont(userStyle.fontId)
     }
 
     override fun onDestroy() {
@@ -279,6 +288,11 @@ class CwfWatchCanvasRenderer(
         val isLowBitMode = renderParameters.drawMode != DrawMode.INTERACTIVE
 
         canvas.drawColor(bgPaint.color)
+
+        hourTextPaint.typeface = watchTypeface
+        minuteTextPaint.typeface = watchTypeface
+        minutesTextPaint.typeface = watchTypeface
+        secondsTextPaint.typeface = watchTypeface
 
         if (!isLowBitMode) {
             hourTextPaint.color = watchFaceColors.activeCurrentHourColor
