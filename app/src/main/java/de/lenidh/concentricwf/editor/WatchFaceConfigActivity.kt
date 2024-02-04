@@ -71,7 +71,7 @@ import de.lenidh.concentricwf.BuildConfig
 import de.lenidh.concentricwf.R
 import de.lenidh.concentricwf.data.editor.TP_LICENSE_INFOS
 import de.lenidh.concentricwf.data.watchface.COLOR_OPTIONS
-import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
+import de.lenidh.concentricwf.data.watchface.WatchFaceUserStyle
 import de.lenidh.concentricwf.utils.COMPLICATION_1_BOTTOM_BOUND
 import de.lenidh.concentricwf.utils.COMPLICATION_1_ID
 import de.lenidh.concentricwf.utils.COMPLICATION_1_LEFT_BOUND
@@ -124,7 +124,7 @@ class WatchFaceConfigActivity : ComponentActivity() {
 
         setTheme(android.R.style.Theme_DeviceDefault)
 
-        val colorOptions = ColorStyleIdAndResourceIds.getColorOptionList(this)
+        val colorOptions = WatchFaceUserStyle.getColorOptionList(this)
 
         setContent {
             navController = rememberSwipeDismissableNavController()

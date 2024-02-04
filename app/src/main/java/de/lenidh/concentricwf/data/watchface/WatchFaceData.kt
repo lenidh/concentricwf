@@ -1,9 +1,8 @@
-
 package de.lenidh.concentricwf.data.watchface
 
 /**
  * Represents all data needed to render the watch face.
  */
 data class WatchFaceData(
-    val activeColorStyle: ColorStyleIdAndResourceIds = ColorStyleIdAndResourceIds.getColorStyleConfig(),
+    val userStyle: WatchFaceUserStyle = WatchFaceUserStyle.getColorStyleConfig(),
 )

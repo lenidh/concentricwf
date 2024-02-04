@@ -5,7 +5,7 @@ import androidx.wear.watchface.style.UserStyleSchema
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.WatchFaceLayer
 import de.lenidh.concentricwf.R
-import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
+import de.lenidh.concentricwf.data.watchface.WatchFaceUserStyle
 
 // Keys to matched content in the  the user style settings. We listen for changes to these
 // values in the renderer and if new, we will update the database and update the watch face
@@ -26,7 +26,7 @@ fun createUserStyleSchema(context: Context): UserStyleSchema {
             R.string.colors_style_setting,
             R.string.colors_style_setting_description,
             null,
-            ColorStyleIdAndResourceIds.getColorOptionList(context),
+            WatchFaceUserStyle.getColorOptionList(context),
             listOf(
                 WatchFaceLayer.BASE,
                 WatchFaceLayer.COMPLICATIONS,

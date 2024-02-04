@@ -1,49 +1,53 @@
 package de.lenidh.concentricwf.data.watchface
 
 import android.content.Context
-import androidx.wear.watchface.complications.rendering.ComplicationDrawable
+import de.lenidh.concentricwf.R
 
 /**
- * Color resources and drawable id needed to render the watch face. Translated from
- * [ColorStyleIdAndResourceIds] constant ids to actual resources with context at run time.
- *
- * This is only needed when the watch face is active.
- *
- * Note: We do not use the context to generate a [ComplicationDrawable] from the
- * complicationStyleDrawableId (representing the style), because a new, separate
- * [ComplicationDrawable] is needed for each complication. Because the renderer will loop through
- * all the complications and there can be more than one, this also allows the renderer to create
- * as many [ComplicationDrawable]s as needed.
+ * Color resources needed to render the watch face.
+ * Translated from [WatchFaceUserStyle] constant ids to actual resources with context at run time.
  */
 data class WatchFaceColorPalette(
-    val activeCurrentTimeColor: Int,
+    val activeCurrentHourColor: Int,
+    val activeCurrentMinuteColor: Int,
     val activeMinutesColor: Int,
     val activeSecondsColor: Int,
     val activeBordersColor: Int,
-    val ambientCurrentTimeColor: Int,
+    val activeComplicationTextColor: Int,
+    val activeComplicationIconColor: Int,
+    val ambientCurrentHourColor: Int,
+    val ambientCurrentMinuteColor: Int,
     val ambientMinutesColor: Int,
     val ambientSecondsColor: Int,
-    val ambientBordersColor: Int
+    val ambientBordersColor: Int,
+    val ambientComplicationTextColor: Int,
+    val ambientComplicationIconColor: Int,
 ) {
     companion object {
         /**
-         * Converts [ColorStyleIdAndResourceIds] to [WatchFaceColorPalette].
+         * Converts [WatchFaceUserStyle] to [WatchFaceColorPalette].
          */
         fun convertToWatchFaceColorPalette(
             context: Context,
-            activeColorStyle: ColorStyleIdAndResourceIds,
+            activeColorStyle: WatchFaceUserStyle,
         ): WatchFaceColorPalette {
             return WatchFaceColorPalette(
                 // Active colors
-                activeCurrentTimeColor = activeColorStyle.currentTimeColorId.toArgb(),
-                activeMinutesColor = activeColorStyle.minutesColorId.toArgb(),
-                activeSecondsColor = activeColorStyle.secondsColorId.toArgb(),
-                activeBordersColor = activeColorStyle.bordersColorId.toArgb(),
+                activeCurrentHourColor = context.getColor(R.color.white_90),
+                activeCurrentMinuteColor = context.getColor(R.color.white_90),
+                activeMinutesColor = context.getColor(R.color.minutes_default),
+                activeSecondsColor = activeColorStyle.accentColor.toArgb(),
+                activeBordersColor = activeColorStyle.accentColor.toArgb(),
+                activeComplicationTextColor = context.getColor(R.color.white_90),
+                activeComplicationIconColor = activeColorStyle.accentColor.toArgb(),
                 // Ambient colors
-                ambientCurrentTimeColor = activeColorStyle.currentTimeColorId.toArgb(),
-                ambientMinutesColor = activeColorStyle.minutesColorId.toArgb(),
-                ambientSecondsColor = activeColorStyle.secondsColorId.toArgb(),
-                ambientBordersColor = activeColorStyle.bordersColorId.toArgb(),
+                ambientCurrentHourColor = context.getColor(R.color.white_70),
+                ambientCurrentMinuteColor = context.getColor(R.color.white_70),
+                ambientMinutesColor = context.getColor(R.color.minutes_default),
+                ambientSecondsColor = activeColorStyle.accentColor.toArgb() and 0xB3FFFFFF.toInt(),
+                ambientBordersColor = activeColorStyle.accentColor.toArgb() and 0xB3FFFFFF.toInt(),
+                ambientComplicationTextColor = context.getColor(R.color.white_70),
+                ambientComplicationIconColor = activeColorStyle.accentColor.toArgb() and 0xB3FFFFFF.toInt(),
             )
         }
     }

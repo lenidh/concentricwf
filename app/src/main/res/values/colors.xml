@@ -10,8 +10,8 @@
     <!-- defaults -->
     <color name="bg_default">@android:color/black</color>
     <color name="index_default">#767a80</color>
-    <color name="hour_default">@android:color/white</color>
-    <color name="minute_default">@android:color/white</color>
+    <color name="hour_default">@color/white_70</color>
+    <color name="minute_default">@color/white_70</color>
     <color name="minutes_default">#767a80</color>
     <color name="seconds_default">@android:color/white</color>
     <color name="border_default">@android:color/white</color>

@@ -24,9 +24,9 @@ import androidx.wear.watchface.style.CurrentUserStyleRepository
 import androidx.wear.watchface.style.UserStyle
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.WatchFaceLayer
-import de.lenidh.concentricwf.data.watchface.ColorStyleIdAndResourceIds
 import de.lenidh.concentricwf.data.watchface.WatchFaceColorPalette.Companion.convertToWatchFaceColorPalette
 import de.lenidh.concentricwf.data.watchface.WatchFaceData
+import de.lenidh.concentricwf.data.watchface.WatchFaceUserStyle
 import de.lenidh.concentricwf.utils.COLOR_STYLE_SETTING
 import de.lenidh.concentricwf.utils.COMPLICATION_OFFSET
 import de.lenidh.concentricwf.utils.COMPLICATION_RADIUS
@@ -42,6 +42,7 @@ import java.time.temporal.ChronoField
 import kotlin.math.floor
 
 private const val FRAME_PERIOD_MS_DEFAULT: Long = 32L
+private val FONT_RESOURCE_DEFAULT = R.font.rubik_regular
 
 class CwfWatchCanvasRenderer(
     private val context: Context,
@@ -64,6 +65,8 @@ class CwfWatchCanvasRenderer(
 
     private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
+    private val watchTypeface = context.resources.getFont(FONT_RESOURCE_DEFAULT)
+
     // Represents all data needed to render the watch face. All value defaults are constants. Only
     // three values are changeable by the user (color scheme, ticks being rendered, and length of
     // the minute arm). Those dynamic values are saved in the watch face APIs and we update those
@@ -72,7 +75,7 @@ class CwfWatchCanvasRenderer(
 
     // Converts resource ids into Colors and ComplicationDrawable.
     private var watchFaceColors = convertToWatchFaceColorPalette(
-        context, watchFaceData.activeColorStyle
+        context, watchFaceData.userStyle
     )
 
     private val bgPaint = Paint().apply {
@@ -91,7 +94,7 @@ class CwfWatchCanvasRenderer(
         isAntiAlias = true
         textSize = 32F
         textAlign = Paint.Align.CENTER
-        typeface = context.resources.getFont(R.font.rubik_regular)
+        typeface = watchTypeface
         color = context.resources.getColor(R.color.hour_default, null)
     }
 
@@ -99,21 +102,21 @@ class CwfWatchCanvasRenderer(
         isAntiAlias = true
         textSize = 18F
         textAlign = Paint.Align.CENTER
-        typeface = context.resources.getFont(R.font.rubik_regular)
+        typeface = watchTypeface
         color = context.resources.getColor(R.color.minute_default, null)
     }
 
     private val minutesTextPaint = Paint().apply {
         isAntiAlias = true
         textSize = 12F
-        typeface = context.resources.getFont(R.font.rubik_regular)
+        typeface = watchTypeface
         color = context.resources.getColor(R.color.minutes_default, null)
     }
 
     private val secondsTextPaint = Paint().apply {
         isAntiAlias = true
         textSize = 12F
-        typeface = context.resources.getFont(R.font.rubik_regular)
+        typeface = watchTypeface
         color = context.resources.getColor(R.color.seconds_default, null)
     }
 
@@ -183,7 +186,7 @@ class CwfWatchCanvasRenderer(
                         options.value as UserStyleSetting.ListUserStyleSetting.ListOption
 
                     newWatchFaceData = newWatchFaceData.copy(
-                        activeColorStyle = ColorStyleIdAndResourceIds.getColorStyleConfig(
+                        userStyle = WatchFaceUserStyle.getColorStyleConfig(
                             listOption.id.toString()
                         )
                     )
@@ -197,15 +200,19 @@ class CwfWatchCanvasRenderer(
 
             // Recreates Color scheme.
             watchFaceColors = convertToWatchFaceColorPalette(
-                context, watchFaceData.activeColorStyle
+                context, watchFaceData.userStyle
             )
 
             // Apply the color scheme to the complication slots.
             for ((_, complication) in complicationSlotsManager.complicationSlots) {
                 if (complication.renderer is CanvasComplicationDrawable) {
                     val drawable = (complication.renderer as CanvasComplicationDrawable).drawable
-                    drawable.activeStyle.iconColor = watchFaceColors.activeSecondsColor
-                    drawable.ambientStyle.iconColor = watchFaceColors.activeSecondsColor
+                    drawable.activeStyle.titleColor = watchFaceColors.activeComplicationTextColor
+                    drawable.activeStyle.textColor = watchFaceColors.activeComplicationTextColor
+                    drawable.activeStyle.iconColor = watchFaceColors.activeComplicationIconColor
+                    drawable.ambientStyle.titleColor = watchFaceColors.ambientComplicationTextColor
+                    drawable.ambientStyle.textColor = watchFaceColors.ambientComplicationTextColor
+                    drawable.ambientStyle.iconColor = watchFaceColors.ambientComplicationIconColor
                 }
             }
         }
@@ -274,14 +281,14 @@ class CwfWatchCanvasRenderer(
         canvas.drawColor(bgPaint.color)
 
         if (!isLowBitMode) {
-            hourTextPaint.color = watchFaceColors.activeCurrentTimeColor
-            minuteTextPaint.color = watchFaceColors.activeCurrentTimeColor
+            hourTextPaint.color = watchFaceColors.activeCurrentHourColor
+            minuteTextPaint.color = watchFaceColors.activeCurrentMinuteColor
             minutesTextPaint.color = watchFaceColors.activeMinutesColor
             secondsTextPaint.color = watchFaceColors.activeSecondsColor
             borderPaint.color = watchFaceColors.activeBordersColor
         } else {
-            hourTextPaint.color = watchFaceColors.ambientCurrentTimeColor
-            minuteTextPaint.color = watchFaceColors.ambientCurrentTimeColor
+            hourTextPaint.color = watchFaceColors.ambientCurrentHourColor
+            minuteTextPaint.color = watchFaceColors.ambientCurrentMinuteColor
             minutesTextPaint.color = watchFaceColors.ambientMinutesColor
             secondsTextPaint.color = watchFaceColors.ambientSecondsColor
             borderPaint.color = watchFaceColors.ambientBordersColor
