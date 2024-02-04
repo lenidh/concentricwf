@@ -139,10 +139,18 @@ class CwfWatchCanvasRenderer(
     // valid dimensions from the system.
     private var currentWatchFaceSize = Rect(0, 0, 0, 0)
 
-    private var minuteIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+    private var minuteIndexRim = IndexRim(
+        largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength
+    )
     private var minuteNumberRim = NumberRim()
-    private var secondIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+    private var secondIndexRim = IndexRim(
+        largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength
+    )
     private var secondNumberRim = NumberRim()
+    private var currentTime = CurrentTime(minuteCenterX, minuteCenterY)
+    private var minuteFrame = MinuteFrame(
+        largeIndexLength, smallIndexLength, minutesIndexPadding, minuteCenterX, minuteCenterY
+    )
     private var complicationFrame = ComplicationFrame()
 
     init {
@@ -244,8 +252,14 @@ class CwfWatchCanvasRenderer(
         minuteCenterX = bounds.right - minutesTextPadding - minuteRefTextBounds.width() / 2F
         minuteCenterY = bounds.exactCenterY()
 
-        minuteIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
-        secondIndexRim = IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+        minuteIndexRim =
+            IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+        secondIndexRim =
+            IndexRim(largeIndexWidth, largeIndexLength, smallIndexWidth, smallIndexLength)
+        currentTime = CurrentTime(minuteCenterX, minuteCenterY)
+        minuteFrame = MinuteFrame(
+            largeIndexLength, smallIndexLength, minutesIndexPadding, minuteCenterX, minuteCenterY
+        )
     }
 
     override fun render(
@@ -276,13 +290,15 @@ class CwfWatchCanvasRenderer(
             if (!isLowBitMode) {
                 drawRims(canvas, bounds, zonedDateTime)
             }
-            drawMinuteBorder(canvas, bounds, isLowBitMode)
+            minuteFrame.draw(canvas, bounds, minuteTextPaint, bgPaint, borderPaint, isLowBitMode)
             drawCurrentTime(canvas, bounds, zonedDateTime)
         }
 
         if (renderParameters.watchFaceLayers.contains(WatchFaceLayer.COMPLICATIONS)) {
             if (!isLowBitMode) {
-                complicationFrame.draw(canvas, bounds, complicationSlotsManager, bgPaint, borderPaint)
+                complicationFrame.draw(
+                    canvas, bounds, complicationSlotsManager, bgPaint, borderPaint
+                )
             }
         }
         // CanvasComplicationDrawable already obeys rendererParameters.
@@ -301,64 +317,10 @@ class CwfWatchCanvasRenderer(
     private fun drawCurrentTime(
         canvas: Canvas, bounds: Rect, zonedDateTime: ZonedDateTime
     ) {
-        val hourOfDay = zonedDateTime.toLocalTime().get(ChronoField.HOUR_OF_DAY)
-        val minuteOfHour = zonedDateTime.toLocalTime().get(ChronoField.MINUTE_OF_HOUR)
-
-        // HOUR
-        val hourText = format2Digits(hourOfDay)
-        val hourPath = Path()
-        hourTextPaint.getTextPath(hourText, 0, hourText.length, 0F, 0F, hourPath)
-        val hourTextBounds = RectF()
-        hourPath.computeBounds(hourTextBounds, true)
-        val hourX = bounds.exactCenterX() // textAlign == CENTER => no horizontal offset required
-        val hourY = bounds.exactCenterY() + hourTextBounds.height() / 2F
-
-        canvas.withTranslation(hourX, hourY) {
-            canvas.drawPath(hourPath, hourTextPaint)
-        }
-
-        // MINUTE
-        val minuteText = format2Digits(minuteOfHour)
-        val minutePath = Path()
-        minuteTextPaint.textAlign = Paint.Align.CENTER
-        minuteTextPaint.getTextPath(minuteText, 0, minuteText.length, 0F, 0F, minutePath)
-        val minuteTextBounds = RectF()
-        minutePath.computeBounds(minuteTextBounds, true)
-        val minuteX = minuteCenterX // textAlign == CENTER => no horizontal offset required
-        val minuteY = minuteCenterY + minuteTextBounds.height() / 2F
-
-        canvas.withTranslation(minuteX, minuteY) {
-            canvas.drawPath(minutePath, minuteTextPaint)
-        }
-    }
-
-    private fun drawMinuteBorder(canvas: Canvas, bounds: Rect, isLowBitMode: Boolean) {
-        val fontMetrics = Paint.FontMetrics()
-        minuteTextPaint.getFontMetrics(fontMetrics)
-        val borderRadius = -fontMetrics.ascent
-        val borderPath = Path()
-        borderPath.arcTo(minuteCenterX - smallIndexLength / 2F, minuteCenterY, borderRadius, 90F, 180F)
-        borderPath.arcTo(
-            if (isLowBitMode) minuteCenterX + smallIndexLength / 2F else bounds.right.toFloat(),
-            minuteCenterY,
-            borderRadius,
-            -90F,
-            180F
-        )
-        borderPath.close()
-
-        val bgPadding = minutesIndexPadding + largeIndexLength
-        var borderBg = Path()
-        borderBg.addCircle(
-            bounds.exactCenterX(),
-            bounds.exactCenterY(),
-            bounds.right - bgPadding - bounds.exactCenterY(),
-            Path.Direction.CW
-        )
-        borderBg = borderBg.and(borderPath)
-
-        canvas.drawPath(borderBg, bgPaint)
-        canvas.drawPath(borderPath, borderPaint)
+        val time = zonedDateTime.toLocalTime()
+        val hourOfDay = time.get(ChronoField.HOUR_OF_DAY)
+        val minuteOfHour = time.get(ChronoField.MINUTE_OF_HOUR)
+        currentTime.draw(canvas, bounds, hourOfDay, minuteOfHour, hourTextPaint, minuteTextPaint)
     }
 
     private fun drawRims(
@@ -417,6 +379,169 @@ class CwfWatchCanvasRenderer(
         private const val MINUTE_TEXT_SIZE_FRACTION = 0.1F
         private const val MINUTES_TEXT_SIZE_FRACTION = 0.063F
         private const val SECONDS_TEXT_SIZE_FRACTION = 0.063F
+    }
+}
+
+private class CurrentTime(
+    private val minuteCenterX: Float,
+    private val minuteCenterY: Float,
+) {
+
+    private var currentWatchBounds = Rect()
+    private var currentHour = -1
+    private var currentMinute = -1
+    private var currentHourTextPaint = Paint()
+    private var currentMinuteTextPaint = Paint()
+
+    private var hourX = -1F
+    private var hourY = -1F
+    private var minuteX = -1F
+    private var minuteY = -1F
+    private var hourPath = Path()
+    private var minutePath = Path()
+
+    private fun recalculate(
+        bounds: Rect,
+        hour: Int,
+        minute: Int,
+        hourTextPaint: Paint,
+        minuteTextPaint: Paint
+    ) {
+        Log.d(TAG, """recalculate
+            |    bounds: $currentWatchBounds -> $bounds
+            |    hour: $currentHour -> $hour
+            |    minute: $currentMinute -> $minute
+            |    hourTextPaint: ${currentHourTextPaint.fontMetricsInt} -> ${hourTextPaint.fontMetricsInt}
+            |    minuteTextPaint: ${currentMinuteTextPaint.fontMetricsInt} -> ${minuteTextPaint.fontMetricsInt}
+        """.trimMargin())
+
+        currentWatchBounds = Rect(bounds)
+        currentHour = hour
+        currentMinute = minute
+        currentHourTextPaint = Paint(hourTextPaint)
+        currentMinuteTextPaint = Paint(minuteTextPaint)
+
+        // HOUR
+        val hourText = format2Digits(hour)
+        hourPath.reset()
+        hourTextPaint.getTextPath(hourText, 0, hourText.length, 0F, 0F, hourPath)
+        val hourTextBounds = RectF()
+        hourPath.computeBounds(hourTextBounds, true)
+        hourX = bounds.exactCenterX() // textAlign == CENTER => no horizontal offset required
+        hourY = bounds.exactCenterY() + hourTextBounds.height() / 2F
+
+        // MINUTE
+        val minuteText = format2Digits(minute)
+        minutePath.reset()
+        minuteTextPaint.getTextPath(minuteText, 0, minuteText.length, 0F, 0F, minutePath)
+        val minuteTextBounds = RectF()
+        minutePath.computeBounds(minuteTextBounds, true)
+        minuteX = minuteCenterX // textAlign == CENTER => no horizontal offset required
+        minuteY = minuteCenterY + minuteTextBounds.height() / 2F
+    }
+
+    fun draw(
+        canvas: Canvas,
+        bounds: Rect,
+        hour: Int,
+        minute: Int,
+        hourTextPaint: Paint,
+        minuteTextPaint: Paint
+    ) {
+        if (currentWatchBounds != bounds
+            || currentHour != hour
+            || currentMinute != minute
+            || !currentHourTextPaint.equalsForTextMeasurement(hourTextPaint)
+            || !currentMinuteTextPaint.equalsForTextMeasurement(minuteTextPaint)) {
+            recalculate(bounds, hour, minute, hourTextPaint, minuteTextPaint)
+        }
+
+        canvas.withTranslation(hourX, hourY) {
+            canvas.drawPath(hourPath, hourTextPaint)
+        }
+        canvas.withTranslation(minuteX, minuteY) {
+            canvas.drawPath(minutePath, minuteTextPaint)
+        }
+    }
+
+    companion object {
+        private const val TAG = "CurrentTime"
+    }
+}
+
+private class MinuteFrame(
+    private val largeIndexLength: Int,
+    private val smallIndexLength: Int,
+    private val minutesIndexPadding: Int,
+    private val minuteCenterX: Float,
+    private val minuteCenterY: Float,
+) {
+
+    private var currentWatchBounds = Rect()
+    private var currentMinuteTextPaint = Paint()
+    private var currentIsLowBitMode = false
+
+    private var borderPath = Path()
+    private var bgPath = Path()
+
+    private fun recalculate(bounds: Rect, minuteTextPaint: Paint, isLowBitMode: Boolean) {
+        Log.d(TAG, """recalculate
+            |    bounds: $currentWatchBounds -> $bounds
+            |    minuteTextPaint: $currentMinuteTextPaint -> $minuteTextPaint
+            |    isLowBitMode: $currentIsLowBitMode -> $isLowBitMode
+        """.trimMargin())
+
+        currentWatchBounds = Rect(bounds)
+        currentMinuteTextPaint = Paint(minuteTextPaint)
+        currentIsLowBitMode = isLowBitMode
+
+        val fontMetrics = Paint.FontMetrics()
+        minuteTextPaint.getFontMetrics(fontMetrics)
+        val borderRadius = -fontMetrics.ascent
+        borderPath = Path()
+        borderPath.arcTo(
+            minuteCenterX - smallIndexLength / 2F, minuteCenterY, borderRadius, 90F, 180F
+        )
+        borderPath.arcTo(
+            if (isLowBitMode) minuteCenterX + smallIndexLength / 2F else bounds.right.toFloat(),
+            minuteCenterY,
+            borderRadius,
+            -90F,
+            180F
+        )
+        borderPath.close()
+
+        val bgPadding = minutesIndexPadding + largeIndexLength
+        var borderBg = Path()
+        borderBg.addCircle(
+            bounds.exactCenterX(),
+            bounds.exactCenterY(),
+            bounds.right - bgPadding - bounds.exactCenterY(),
+            Path.Direction.CW
+        )
+        bgPath = borderBg.and(borderPath)
+    }
+
+    fun draw(
+        canvas: Canvas,
+        bounds: Rect,
+        minuteTextPaint: Paint,
+        bgPaint: Paint,
+        borderPaint: Paint,
+        isLowBitMode: Boolean
+    ) {
+        if (currentWatchBounds != bounds
+            || !currentMinuteTextPaint.equalsForTextMeasurement(minuteTextPaint)
+            || currentIsLowBitMode != isLowBitMode) {
+            recalculate(bounds, minuteTextPaint, isLowBitMode)
+        }
+
+        canvas.drawPath(bgPath, bgPaint)
+        canvas.drawPath(borderPath, borderPaint)
+    }
+
+    companion object {
+        private const val TAG = "MinuteFrame"
     }
 }
 
@@ -489,7 +614,13 @@ private class ComplicationFrame {
         path = startPath.or(middlePath).or(endPath)
     }
 
-    fun draw(canvas: Canvas, bounds: Rect, complicationSlotsManager: ComplicationSlotsManager, bgPaint: Paint, borderPaint: Paint) {
+    fun draw(
+        canvas: Canvas,
+        bounds: Rect,
+        complicationSlotsManager: ComplicationSlotsManager,
+        bgPaint: Paint,
+        borderPaint: Paint
+    ) {
         val activeIndices = complicationSlotsManager.complicationSlots
             .toSortedMap()
             .entries.withIndex()
@@ -500,7 +631,10 @@ private class ComplicationFrame {
         val min = activeIndices.first()
         val max = activeIndices.last()
 
-        if (currentWatchBounds != bounds || currentMin != min || currentMax != max || currentStrokeWidth != borderPaint.strokeWidth) {
+        if (currentWatchBounds != bounds
+            || currentMin != min
+            || currentMax != max
+            || currentStrokeWidth != borderPaint.strokeWidth) {
             recalculate(bounds, min, max, borderPaint.strokeWidth)
         }
 
@@ -628,7 +762,9 @@ private class NumberRim {
     }
 
     fun draw(canvas: Canvas, bounds: Rect, padding: Int, rotation: Float, paint: Paint) {
-        if (currentWatchBounds != bounds || currentPadding != padding || !currentPaint.equalsForTextMeasurement(paint)) {
+        if (currentWatchBounds != bounds
+            || currentPadding != padding
+            || !currentPaint.equalsForTextMeasurement(paint)) {
             recalculate(bounds, padding, paint)
         }
 
