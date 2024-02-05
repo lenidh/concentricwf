@@ -1,6 +1,7 @@
 package de.lenidh.concentricwf.editor
 
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.Color.parseColor
 import android.os.Bundle
 import android.util.Log
@@ -199,7 +200,7 @@ private fun Editor(
     preview: MutableState<ImageBitmap?> = mutableStateOf(null),
     colorOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption> = emptyList(),
     fontOptions: List<UserStyleSetting.ListUserStyleSetting.ListOption> = emptyList(),
-    currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
+    currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0].id),
     currentFontId: MutableState<String> = mutableStateOf(FONT_OPTIONS[0].id),
     onClick: (Int) -> Unit = {},
     onColorSelected: (String) -> Unit = {},
@@ -249,7 +250,7 @@ private fun Editor(
 private fun OptionPager(
     navController: NavHostController = rememberSwipeDismissableNavController(),
     preview: MutableState<ImageBitmap?> = mutableStateOf(null),
-    currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0]),
+    currentColorId: MutableState<String> = mutableStateOf(COLOR_OPTIONS[0].id),
     currentFontId: MutableState<String> = mutableStateOf(FONT_OPTIONS[0].id),
     onClick: (Int) -> Unit = {}
 ) {
@@ -282,7 +283,9 @@ private fun OptionPager(
             pageSize = PageSize.Fill,
         ) { page ->
             if (page == 0) {
-                val text by remember { currentColorId }
+                val optionId by remember { currentColorId }
+                val selectedOption = WatchFaceUserStyle.getFontOption(optionId)
+                val text = selectedOption?.let { stringResource(it.nameId) } ?: optionId
                 OptionPage(
                     labelText = stringResource(R.string.colors_style_setting),
                     valueText = text,
@@ -466,15 +469,16 @@ private fun OptionPage(valueText: String, labelText: String = "", onStartPicker:
 @WearPreviewLargeRound
 @Composable
 private fun ListOptionPickerPreview() {
-    val options = COLOR_OPTIONS.map {
+    val options = (0..9).map { option ->
         UserStyleSetting.ListUserStyleSetting.ListOption(
-            UserStyleSetting.Option.Id(it), it, it, null
+            UserStyleSetting.Option.Id(option.toString()), Resources.getSystem(), 0, 0, null
         )
     }.toList()
     ListOptionPicker(
         options = options,
-        labelProvider = { optionId -> { Text(text = optionId) } },
-        iconProvider = { optionId -> { ColorPreviewIcon(optionId) } },
+        labelProvider = { _ -> { Text("Lorem ipsum") } },
+        secondaryLabelProvider = { _ -> { Text("dolor sit amet") } },
+        iconProvider = { _ -> { ColorPreviewIcon("#FFFFFF") } },
         onSelected = {})
 }
 
@@ -483,6 +487,7 @@ private fun ListOptionPicker(
     options: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
     labelProvider: (String) -> (@Composable RowScope.() -> Unit),
     onSelected: (String) -> Unit,
+    secondaryLabelProvider: ((String) -> (@Composable RowScope.() -> Unit))? = null,
     iconProvider: ((String) -> (@Composable BoxScope.() -> Unit))? = null,
 ) {
     val listState = rememberScalingLazyListState()
@@ -510,6 +515,7 @@ private fun ListOptionPicker(
                             .padding(24.dp, 0.dp),
                         onClick = { onSelected(it.id.toString()) },
                         label = labelProvider(it.id.toString()),
+                        secondaryLabel = secondaryLabelProvider?.invoke(it.id.toString()),
                         icon = iconProvider?.invoke(it.id.toString()),
                         colors = ChipDefaults.secondaryChipColors()
                     )
@@ -519,6 +525,15 @@ private fun ListOptionPicker(
     }
 }
 
+@WearPreviewLargeRound
+@Composable
+private fun ColorPickerPreview() {
+    val options = WatchFaceUserStyle.getColorOptionList(LocalContext.current)
+    ColorPicker(
+        options = options,
+        onSelected = {})
+}
+
 @Composable
 private fun ColorPicker(
     options: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
@@ -526,9 +541,22 @@ private fun ColorPicker(
 ) {
     ListOptionPicker(
         options = options,
-        labelProvider = { optionId -> { Text(optionId) } },
+        labelProvider = { optionId -> {
+            val option = WatchFaceUserStyle.getColorOption(optionId)
+            val text = option?.let { stringResource(it.nameId) } ?: "???"
+            Text(text)
+        } },
         iconProvider = { optionId -> { ColorPreviewIcon(optionId) } },
         onSelected = onSelected)
+}
+
+@WearPreviewLargeRound
+@Composable
+private fun FontPickerPreview() {
+    val options = WatchFaceUserStyle.getFontOptionList(LocalContext.current)
+    FontPicker(
+        options = options,
+        onSelected = {})
 }
 
 @Composable

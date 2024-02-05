@@ -6,6 +6,27 @@
     <string name="license_info_tp_artwork">Artwork</string>
     <string name="license_info_tp_modules">Software modules</string>
 
+    <!-- Names of color options -->
+    <string name="color_option_white">White</string>
+    <string name="color_option_turquoise">Turquoise</string>
+    <string name="color_option_greensea">Greensea</string>
+    <string name="color_option_emerland">Emerland</string>
+    <string name="color_option_nephritis">Nephritis</string>
+    <string name="color_option_peterriver">Peterriver</string>
+    <string name="color_option_belizehole">Belizehole</string>
+    <string name="color_option_amethyst">Amethyst</string>
+    <string name="color_option_wisteria">Wisteria</string>
+    <string name="color_option_sunflower">Sunflower</string>
+    <string name="color_option_orange">Orange</string>
+    <string name="color_option_carrot">Carrot</string>
+    <string name="color_option_pumpkin">Pumpkin</string>
+    <string name="color_option_alizarin">Alizarin</string>
+    <string name="color_option_pomegranate">Pomegranate</string>
+    <string name="color_option_clouds">Clouds</string>
+    <string name="color_option_silver">Silver</string>
+    <string name="color_option_concrete">Concrete</string>
+    <string name="color_option_asbestos">Asbestos</string>
+
     <!-- Names of font options -->
     <string name="font_option_rubik">Rubik</string>
     <string name="font_option_manrope">Manrope</string>

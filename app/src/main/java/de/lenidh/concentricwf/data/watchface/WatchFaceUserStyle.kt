@@ -2,35 +2,37 @@ package de.lenidh.concentricwf.data.watchface
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.Icon
-import android.util.Log
-import androidx.wear.compose.material.contentColorFor
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.UserStyleSetting.ListUserStyleSetting
 import de.lenidh.concentricwf.R
 
 val COLOR_OPTIONS = listOf(
-    "#FFFFFF", // White
-    "#1ABC9C", // Turquoise
-    "#16A085", // Greensea
-    "#2ECC71", // Emerland
-    "#27AE60", // Nephritis
-    "#3498DB", // Peterriver
-    "#2980B9", // Belizehole
-    "#9B59B6", // Amethyst
-    "#8E44AD", // Wisteria
-    "#F1C40F", // Sunflower
-    "#F39C12", // Orange
-    "#E67E22", // Carrot
-    "#D35400", // Pumpkin
-    "#E74C3C", // Alizarin
-    "#C0392B", // Pomegranate
-    "#ECF0F1", // Clouds
-    "#BDC3C7", // Silver
-    "#95A5A6", // Concrete
-    "#7F8C8D", // Asbestos
+    ColorOption("#FFFFFF", R.string.color_option_white),
+    ColorOption("#1ABC9C", R.string.color_option_turquoise),
+    ColorOption("#16A085", R.string.color_option_greensea),
+    ColorOption("#2ECC71", R.string.color_option_emerland),
+    ColorOption("#27AE60", R.string.color_option_nephritis),
+    ColorOption("#3498DB", R.string.color_option_peterriver),
+    ColorOption("#2980B9", R.string.color_option_belizehole),
+    ColorOption("#9B59B6", R.string.color_option_amethyst),
+    ColorOption("#8E44AD", R.string.color_option_wisteria),
+    ColorOption("#F1C40F", R.string.color_option_sunflower),
+    ColorOption("#F39C12", R.string.color_option_orange),
+    ColorOption("#E67E22", R.string.color_option_carrot),
+    ColorOption("#D35400", R.string.color_option_pumpkin),
+    ColorOption("#E74C3C", R.string.color_option_alizarin),
+    ColorOption("#C0392B", R.string.color_option_pomegranate),
+    ColorOption("#ECF0F1", R.string.color_option_clouds),
+    ColorOption("#BDC3C7", R.string.color_option_silver),
+    ColorOption("#95A5A6", R.string.color_option_concrete),
+    ColorOption("#7F8C8D", R.string.color_option_asbestos),
 )
+
+data class ColorOption(val id: String, val nameId: Int) {
+    val colorInt: Int = Color.parseColor(id)
+    val color: Color = Color.valueOf(colorInt)
+}
 
 val FONT_OPTIONS = listOf(
     FontOption("1", R.font.rubik_regular, R.string.font_option_rubik),
@@ -62,8 +64,8 @@ class WatchFaceUserStyle(
             fontOptionId: String? = null
         ): WatchFaceUserStyle {
             return WatchFaceUserStyle(
-                Color.valueOf(Color.parseColor(accentColorId ?: COLOR_OPTIONS[0])),
-                fontOptionId?.let { getFontOption(it)?.fontId } ?: FONT_OPTIONS[0].fontId,
+                getColorOptionOrDefault(accentColorId).color,
+                getFontOptionOrDefault(fontOptionId).fontId,
             )
         }
 
@@ -73,15 +75,18 @@ class WatchFaceUserStyle(
          * options for the user to select a style.
          */
         fun getColorOptionList(context: Context): List<ListUserStyleSetting.ListOption> {
-
-            return COLOR_OPTIONS.map {
+            return COLOR_OPTIONS.map { option ->
                 val icon = Icon.createWithResource(
                     context,
                     R.drawable.ic_color_style,
                 )
-                icon.setTint(Color.parseColor(it))
+                icon.setTint(option.colorInt)
                 ListUserStyleSetting.ListOption(
-                    UserStyleSetting.Option.Id(it), it, it, icon
+                    UserStyleSetting.Option.Id(option.id),
+                    context.resources,
+                    option.nameId,
+                    option.nameId,
+                    icon
                 )
             }
         }
@@ -98,8 +103,20 @@ class WatchFaceUserStyle(
             }
         }
 
-        fun getFontOption(optionId: String): FontOption? {
-            return FONT_OPTIONS.find { option -> option.id == optionId }
+        fun getColorOption(id: String): ColorOption? {
+            return COLOR_OPTIONS.find { option -> option.id == id }
+        }
+
+        private fun getColorOptionOrDefault(id: String?): ColorOption {
+            return id?.let { getColorOption(it) } ?: COLOR_OPTIONS[0]
+        }
+
+        fun getFontOption(id: String): FontOption? {
+            return FONT_OPTIONS.find { option -> option.id == id }
+        }
+
+        private fun getFontOptionOrDefault(id: String?): FontOption {
+            return id?.let { getFontOption(it) } ?: FONT_OPTIONS[0]
         }
     }
 }
