@@ -100,7 +100,7 @@ class WatchFaceConfigStateHolder(
 
     private fun extractsUserStyles(userStyleSchema: UserStyleSchema) {
         // Loops through user styles and retrieves user editable styles.
-        for (setting in userStyleSchema.userStyleSettings) {
+        for (setting in userStyleSchema.rootUserStyleSettings) {
             when (setting.id.toString()) {
                 COLOR_STYLE_SETTING -> {
                     colorStyleKey = setting as UserStyleSetting.ListUserStyleSetting
@@ -170,7 +170,7 @@ class WatchFaceConfigStateHolder(
     }
 
     fun setColorStyle(newColorStyleId: String) {
-        val userStyleSettingList = editorSession.userStyleSchema.userStyleSettings
+        val userStyleSettingList = editorSession.userStyleSchema.rootUserStyleSettings
 
         // Loops over all UserStyleSettings (basically the keys in the map) to find the setting for
         // the color style (which contains all the possible options for that style setting).
@@ -192,7 +192,7 @@ class WatchFaceConfigStateHolder(
     }
 
     fun setFontStyle(newFontStyleId: String) {
-        val userStyleSettingList = editorSession.userStyleSchema.userStyleSettings
+        val userStyleSettingList = editorSession.userStyleSchema.rootUserStyleSettings
 
         // Loops over all UserStyleSettings (basically the keys in the map) to find the setting for
         // the font style (which contains all the possible options for that style setting).
