@@ -17,7 +17,7 @@ pipeline {
             }
             steps {
                 sh "test ! -f $ANDROID_USER_HOME/debug.keystore && keytool -genkey -v -keystore $ANDROID_USER_HOME/debug.keystore -alias androiddebugkey -storepass android -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname \"CN=Android Debug,O=Android,C=US\" || true"
-                sh "sh ./gradlew"
+                sh "sh ./gradlew assembleDebug"
             }
         }
     }
