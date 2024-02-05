@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     environment {
-        GRADLE_USER_HOME = ".gradle"
+        GRADLE_USER_HOME = "$WORKSPACE/.gradle"
         ANDROID_HOME = "/usr/local/android-sdk"
-        ANDROID_USER_HOME = ".android"
+        ANDROID_USER_HOME = "$WORKSPACE/.android"
     }
 
     stages {
