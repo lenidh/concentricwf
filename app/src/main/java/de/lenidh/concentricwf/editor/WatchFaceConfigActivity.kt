@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
@@ -569,7 +570,13 @@ private fun FontPicker(
         labelProvider = { optionId -> {
             val option = WatchFaceUserStyle.getFontOption(optionId)
             val text = option?.let { stringResource(it.nameId) } ?: "???"
-            Text(text)
+            val font = option?.let { FontFamily(LocalContext.current.resources.getFont(option.fontId)) }
+            Text(text, fontFamily = font)
+        } },
+        secondaryLabelProvider = { optionId -> {
+            val option = WatchFaceUserStyle.getFontOption(optionId)
+            val font = option?.let { FontFamily(LocalContext.current.resources.getFont(option.fontId)) }
+            Text("0 1 2 3 4 5 6 7 8 9", fontFamily = font)
         } },
         onSelected = onSelected)
 }

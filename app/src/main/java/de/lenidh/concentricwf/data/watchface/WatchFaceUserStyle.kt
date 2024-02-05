@@ -1,7 +1,10 @@
 package de.lenidh.concentricwf.data.watchface
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.drawable.Icon
 import androidx.wear.watchface.style.UserStyleSetting
 import androidx.wear.watchface.style.UserStyleSetting.ListUserStyleSetting
@@ -92,14 +95,28 @@ class WatchFaceUserStyle(
         }
 
         fun getFontOptionList(context: Context): List<ListUserStyleSetting.ListOption> {
-            return FONT_OPTIONS.map { option ->
+            val icons = createFontOptionIcons(context, FONT_OPTIONS)
+            return FONT_OPTIONS.zip(icons).map { (option, icon ) ->
                 ListUserStyleSetting.ListOption(
                     UserStyleSetting.Option.Id(option.id),
                     context.resources,
                     option.nameId,
                     option.nameId,
-                    null
+                    icon
                 )
+            }
+        }
+
+        private fun createFontOptionIcons(context: Context, options: List<FontOption>): List<Icon> {
+            val fontPaint = Paint().apply { textSize = 36F; textAlign = Paint.Align.CENTER ; color = Color.BLACK }
+            val bgPaint = Paint().apply { color = Color.WHITE }
+            return options.map { option ->
+                fontPaint.typeface = context.resources.getFont(option.fontId)
+                val bitmap = Bitmap.createBitmap(48, 48, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                canvas.drawCircle(24F, 24F,24F, bgPaint)
+                canvas.drawText("09", 24F, 36F, fontPaint)
+                Icon.createWithBitmap(bitmap)
             }
         }
 
