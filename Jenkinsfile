@@ -1,12 +1,17 @@
 pipeline {
     agent any
 
+    environment {
+        GRADLE_USER_HOME = ".gradle"
+        ANDROID_HOME = "/usr/local/android-sdk"
+        ANDROID_USER_HOME = ".android"
+    }
+
     stages {
         stage('Build') {
             agent {
                 dockerfile {
                     filename "Dockerfile"
-                    //additionalBuildArgs "--pull --build-arg RUST_VERSION=${RUST_VERSION}"
                     reuseNode true
                 }
             }
