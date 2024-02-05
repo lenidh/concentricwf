@@ -1,11 +1,9 @@
 FROM openjdk:21-bookworm
 
 ENV SDK_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
-    ANDROID_HOME="/user/local/android-sdk" \
+    ANDROID_HOME="/usr/local/android-sdk" \
     ANDROID_VERSION=34 \
     ANDORID_BUILD_TOOLS_VERSION=34.0.0
-
-RUN apt-get update && apt-get install unzip
 
 RUN mkdir -p "${ANDROID_HOME}" .android \
     && cd "${ANDROID_HOME}" \
