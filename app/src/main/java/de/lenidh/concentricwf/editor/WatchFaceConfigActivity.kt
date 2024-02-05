@@ -285,7 +285,7 @@ private fun OptionPager(
         ) { page ->
             if (page == 0) {
                 val optionId by remember { currentColorId }
-                val selectedOption = WatchFaceUserStyle.getFontOption(optionId)
+                val selectedOption = WatchFaceUserStyle.getColorOption(optionId)
                 val text = selectedOption?.let { stringResource(it.nameId) } ?: optionId
                 OptionPage(
                     labelText = stringResource(R.string.colors_style_setting),
