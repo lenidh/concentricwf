@@ -7,7 +7,7 @@
     <string name="license_info_tp_modules">Software modules</string>
 
     <!-- Names of color options -->
-    <string name="color_option_white">White</string>
+    <string name="color_option_default">Default</string>
     <string name="color_option_turquoise">Turquoise</string>
     <string name="color_option_greensea">Greensea</string>
     <string name="color_option_emerland">Emerland</string>
@@ -26,6 +26,22 @@
     <string name="color_option_silver">Silver</string>
     <string name="color_option_concrete">Concrete</string>
     <string name="color_option_asbestos">Asbestos</string>
+    <string name="color_option_aquamarine">Aquamarine</string>
+    <string name="color_option_palegreen">Palegreen</string>
+    <string name="color_option_springgreen">Springgreen</string>
+    <string name="color_option_sky">Sky</string>
+    <string name="color_option_steelblue">Steelblue</string>
+    <string name="color_option_dodgerblue">Dodgerblue</string>
+    <string name="color_option_thistle">Thistle</string>
+    <string name="color_option_plum">Plum</string>
+    <string name="color_option_violet">Violet</string>
+    <string name="color_option_orchid">Orchid</string>
+    <string name="color_option_moccasin">Moccasin</string>
+    <string name="color_option_salmon">Salmon</string>
+    <string name="color_option_coral">Coral</string>
+    <string name="color_option_tan">Tan</string>
+    <string name="color_option_peru">Peru</string>
+    <string name="color_option_sienna">Sienna</string>
 
     <!-- Names of font options -->
     <string name="font_option_rubik">Rubik</string>
