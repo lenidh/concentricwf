@@ -103,6 +103,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         COMPLICATION_1_ID, listOf(
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
+            ComplicationType.EMPTY,
         )
     )
 
@@ -110,6 +111,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         COMPLICATION_2_ID, listOf(
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
+            ComplicationType.EMPTY,
         )
     )
 
@@ -117,6 +119,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         COMPLICATION_3_ID, listOf(
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
+            ComplicationType.EMPTY,
         )
     )
 
@@ -124,6 +127,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         COMPLICATION_4_ID, listOf(
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
+            ComplicationType.EMPTY,
         )
     )
 
@@ -131,6 +135,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         COMPLICATION_5_ID, listOf(
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
+            ComplicationType.EMPTY,
         )
     )
 }
@@ -157,7 +162,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp1.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.EMPTY
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -173,7 +178,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp2.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.EMPTY
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -189,7 +194,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp3.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.EMPTY
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -205,7 +210,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp4.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.EMPTY
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -221,7 +226,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp5.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.EMPTY
         ),
         bounds = ComplicationSlotBounds(
             RectF(
