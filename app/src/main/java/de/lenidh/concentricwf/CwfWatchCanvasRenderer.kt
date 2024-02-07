@@ -171,8 +171,8 @@ class CwfWatchCanvasRenderer(
 
         var newWatchFaceData: WatchFaceData = watchFaceData
 
-        var colorOptionId: String? = null;
-        var fontOptionId: String? = null;
+        var colorOptionId: String? = null
+        var fontOptionId: String? = null
 
         // Loops through user style and applies new values to watchFaceData.
         for (options in userStyle) {
@@ -536,7 +536,7 @@ private class MinuteFrame(
         borderPath.close()
 
         val bgPadding = minutesIndexPadding + largeIndexLength
-        var borderBg = Path()
+        val borderBg = Path()
         borderBg.addCircle(
             bounds.exactCenterX(),
             bounds.exactCenterY(),

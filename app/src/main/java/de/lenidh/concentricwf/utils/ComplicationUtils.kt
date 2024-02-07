@@ -1,7 +1,6 @@
 package de.lenidh.concentricwf.utils
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.RectF
 import androidx.core.content.res.ResourcesCompat
 import androidx.wear.watchface.CanvasComplicationFactory
@@ -13,7 +12,6 @@ import androidx.wear.watchface.complications.SystemDataSources
 import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.rendering.CanvasComplicationDrawable
 import androidx.wear.watchface.complications.rendering.ComplicationDrawable
-import androidx.wear.watchface.complications.rendering.ComplicationStyle
 import androidx.wear.watchface.style.CurrentUserStyleRepository
 import de.lenidh.concentricwf.R
 import kotlin.math.PI
@@ -59,19 +57,19 @@ fun computeComplicationAngle(i: Int): Float {
 }
 
 private fun computeComplicationLeftBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(computeComplicationAngle(i)).toFloat() - COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(computeComplicationAngle(i)) - COMPLICATION_RADIUS + 0.5F
 }
 
 private fun computeComplicationRightBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(computeComplicationAngle(i)).toFloat() + COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * cos(computeComplicationAngle(i)) + COMPLICATION_RADIUS + 0.5F
 }
 
 private fun computeComplicationTopBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(computeComplicationAngle(i)).toFloat() - COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(computeComplicationAngle(i)) - COMPLICATION_RADIUS + 0.5F
 }
 
 private fun computeComplicationBottomBound(i: Int): Float {
-    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(computeComplicationAngle(i)).toFloat() + COMPLICATION_RADIUS + 0.5F
+    return (0.5F - COMPLICATION_RADIUS - COMPLICATION_OFFSET) * sin(computeComplicationAngle(i)) + COMPLICATION_RADIUS + 0.5F
 }
 
 // Unique IDs for each complication. The settings activity that supports allowing users
@@ -82,13 +80,11 @@ internal const val COMPLICATION_3_ID = 102
 internal const val COMPLICATION_4_ID = 103
 internal const val COMPLICATION_5_ID = 104
 
-internal const val TAG = "ComplicationUtils"
-
 /**
  * Represents the unique id associated with a complication and the complication types it supports.
  */
 sealed class ComplicationConfig(val id: Int, val supportedTypes: List<ComplicationType>) {
-    object Comp1 : ComplicationConfig(
+    data object Comp1 : ComplicationConfig(
         COMPLICATION_1_ID, listOf(
             ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
@@ -96,7 +92,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         )
     )
 
-    object Comp2 : ComplicationConfig(
+    data object Comp2 : ComplicationConfig(
         COMPLICATION_2_ID, listOf(
             ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
@@ -104,7 +100,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         )
     )
 
-    object Comp3 : ComplicationConfig(
+    data object Comp3 : ComplicationConfig(
         COMPLICATION_3_ID, listOf(
             ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
@@ -112,7 +108,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         )
     )
 
-    object Comp4 : ComplicationConfig(
+    data object Comp4 : ComplicationConfig(
         COMPLICATION_4_ID, listOf(
             ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
@@ -120,7 +116,7 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
         )
     )
 
-    object Comp5 : ComplicationConfig(
+    data object Comp5 : ComplicationConfig(
         COMPLICATION_5_ID, listOf(
             ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
@@ -231,27 +227,4 @@ fun createComplicationSlotManager(
         listOf(complication1, complication2, complication3, complication4, complication5),
         currentUserStyleRepository
     )
-}
-
-/**
- * Returns a [ComplicationStyle] based on the provided `style` but with colors
- * restricted to black, white or transparent. All text and icon colors in the returned style
- * will be set to white.
- */
-private fun lowBitAmbientStyleFrom(style: ComplicationStyle): ComplicationStyle {
-    val newStyle = ComplicationStyle(style)
-    if (style.backgroundColor != Color.BLACK) {
-        newStyle.backgroundColor = Color.TRANSPARENT
-    }
-    newStyle.textColor = Color.WHITE
-    newStyle.titleColor = Color.WHITE
-    newStyle.iconColor = Color.WHITE
-    if (style.borderColor != Color.BLACK && style.borderColor != Color.TRANSPARENT) {
-        newStyle.borderColor = Color.WHITE
-    }
-    newStyle.rangedValuePrimaryColor = Color.WHITE
-    if (style.rangedValueSecondaryColor != Color.BLACK) {
-        newStyle.rangedValueSecondaryColor = Color.TRANSPARENT
-    }
-    return newStyle
 }
