@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2024 Moritz Heindl
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package de.lenidh.concentricwf.editor
 
 import android.content.Intent
@@ -72,6 +90,8 @@ import androidx.wear.watchface.style.UserStyleSetting
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import de.lenidh.concentricwf.BuildConfig
 import de.lenidh.concentricwf.R
+import de.lenidh.concentricwf.data.editor.LicenseInfo
+import de.lenidh.concentricwf.data.editor.SELF_LICENSE_INFO
 import de.lenidh.concentricwf.data.editor.TP_LICENSE_INFOS
 import de.lenidh.concentricwf.data.watchface.COLOR_OPTIONS
 import de.lenidh.concentricwf.data.watchface.FONT_OPTIONS
@@ -231,15 +251,18 @@ private fun Editor(
                 onFontSelected(id)
             }
         }
-        composable(route = "info/licenses") {
+        composable(route = "info/licenses/self") {
+            LicenseTextScreen(SELF_LICENSE_INFO)
+        }
+        composable(route = "info/licenses/artwork") {
             LicenseListScreen(navController)
         }
         composable(
-            route = "info/licenses/{i}",
+            route = "info/licenses/artwork/{i}",
             arguments = listOf(navArgument("i") { type = NavType.IntType })
         ) { backStackEntry ->
             backStackEntry.arguments?.let {
-                LicenseTextScreen(it.getInt("i"))
+                ArtworkLicenseTextScreen(it.getInt("i"))
             }
         }
     }
@@ -625,22 +648,21 @@ private fun InfoScreen(
                     style = MaterialTheme.typography.caption1
                 )
             }
-            /*item {
+            item {
                 val context = LocalContext.current
                 Chip(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp, 0.dp),
                     onClick = {
-                        context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
-                        //navController.navigate("info/licenses")
+                        navController.navigate("info/licenses/self")
                     },
                     label = {
-                        Text("This app")
+                        Text(stringResource(R.string.this_watch_face))
                     },
                     colors = ChipDefaults.secondaryChipColors()
                 )
-            }*/
+            }
             item {
                 Text(
                     stringResource(R.string.license_info_tp_subtitle),
@@ -653,7 +675,7 @@ private fun InfoScreen(
                         .fillMaxWidth()
                         .padding(24.dp, 0.dp),
                     onClick = {
-                        navController.navigate("info/licenses")
+                        navController.navigate("info/licenses/artwork")
                     },
                     label = {
                         Text(stringResource(R.string.license_info_tp_artwork))
@@ -708,7 +730,7 @@ private fun LicenseListScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(24.dp, 0.dp),
-                        onClick = { navController.navigate("info/licenses/${i}") },
+                        onClick = { navController.navigate("info/licenses/artwork/${i}") },
                         label = {
                             Text(stringResource(info.subjectId))
                         },
@@ -723,9 +745,20 @@ private fun LicenseListScreen(
     }
 }
 
+@Composable
+private fun ArtworkLicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::class) i: Int) {
+    val info = TP_LICENSE_INFOS[i]
+    LicenseTextScreen(info)
+}
+
 @WearPreviewLargeRound
 @Composable
-private fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvider::class) i: Int) {
+private fun LicenseTextScreenPreview() {
+    LicenseTextScreen(SELF_LICENSE_INFO)
+}
+
+@Composable
+private fun LicenseTextScreen(licenseInfo: LicenseInfo) {
     val listState = rememberScalingLazyListState()
 
     Scaffold(
@@ -743,13 +776,12 @@ private fun LicenseTextScreen(@PreviewParameter(LicenseTextScreenParameterProvid
             state = listState,
             modifier = Modifier.fillMaxWidth()
         ) {
-            val info = TP_LICENSE_INFOS[i]
             item {
-                Text(stringResource(id = info.subjectId))
+                Text(stringResource(id = licenseInfo.subjectId))
             }
             item {
                 Text(
-                    stringResource(id = info.licenseTextId),
+                    stringResource(id = licenseInfo.licenseTextId),
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }

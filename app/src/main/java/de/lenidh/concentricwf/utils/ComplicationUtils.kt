@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2024 Moritz Heindl
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
 package de.lenidh.concentricwf.utils
 
 import android.content.Context
@@ -19,14 +37,11 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 // Information needed for complications.
-// Creates bounds for the locations of both right and left complications. (This is the
-// location from 0.0 - 1.0.)
-// Both left and right complications use the same top and bottom bounds.
-
 const val COMPLICATION_OFFSET = 0.025F
 const val COMPLICATION_RADIUS = 0.1F
 private const val COMPLICATION_ANGLE = PI / 5
 
+// Specifies the relative bounds of the complications in the range of [0; 1].
 val COMPLICATION_1_LEFT_BOUND = computeComplicationLeftBound(0)
 val COMPLICATION_1_RIGHT_BOUND = computeComplicationRightBound(0)
 val COMPLICATION_1_TOP_BOUND = computeComplicationTopBound(0)
