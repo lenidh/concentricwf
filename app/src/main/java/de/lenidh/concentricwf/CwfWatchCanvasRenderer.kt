@@ -154,6 +154,22 @@ class CwfWatchCanvasRenderer(
         scope.launch {
             currentUserStyleRepository.userStyle.collect { userStyle ->
                 updateWatchFaceData(userStyle)
+                // WORKAROUND for https://github.com/lenidh/concentricwf/issues/3#issue-2117452899
+                // Forcing the complication to reload fixes them sometimes not being rendered at
+                // startup. This is caused by ComplicationRenderer.mBounds being zero ant therefore
+                // ignoring requests to draw itself. By reloading the complication drawables with
+                // loadDrawablesAsynchronous = true we force ComplicationRenderer to update its
+                // mBounds property
+                reloadComplicationsDrawableAsync()
+            }
+        }
+    }
+
+    private fun reloadComplicationsDrawableAsync() {
+        for ((_, complication) in complicationSlotsManager.complicationSlots) {
+            if (complication.renderer is CanvasComplicationDrawable) {
+                val renderer = (complication.renderer as CanvasComplicationDrawable)
+                renderer.loadData(complication.complicationData.value, true)
             }
         }
     }
@@ -167,7 +183,7 @@ class CwfWatchCanvasRenderer(
      * function is called by a flow.
      */
     private fun updateWatchFaceData(userStyle: UserStyle) {
-        Log.d(TAG, "updateWatchFace(): $userStyle")
+        Log.d(TAG, "updateWatchFace(userStyle=$userStyle)")
 
         var newWatchFaceData: WatchFaceData = watchFaceData
 
@@ -236,6 +252,13 @@ class CwfWatchCanvasRenderer(
     override fun renderHighlightLayer(
         canvas: Canvas, bounds: Rect, zonedDateTime: ZonedDateTime, sharedAssets: SharedAssets
     ) {
+        Log.v(TAG, """renderHighlightLayer()
+                     |    canvas=$canvas
+                     |    bounds=$bounds
+                     |    zonedDateTime=$zonedDateTime
+                     |    sharedAssets=$sharedAssets
+                     |)""".trimMargin())
+
         canvas.drawColor(renderParameters.highlightLayer!!.backgroundTint)
 
         for ((_, complication) in complicationSlotsManager.complicationSlots) {
@@ -282,6 +305,13 @@ class CwfWatchCanvasRenderer(
     override fun render(
         canvas: Canvas, bounds: Rect, zonedDateTime: ZonedDateTime, sharedAssets: SharedAssets
     ) {
+        Log.v(TAG, """render(
+                     |    canvas=$canvas
+                     |    bounds=$bounds
+                     |    zonedDateTime=$zonedDateTime
+                     |    sharedAssets=$sharedAssets
+                     |)""".trimMargin())
+
         if (currentWatchFaceSize != bounds) {
             recalculateDimensions(bounds)
         }
