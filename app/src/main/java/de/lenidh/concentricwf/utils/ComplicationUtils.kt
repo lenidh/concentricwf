@@ -142,7 +142,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp1.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.DATA_SOURCE_DAY_OF_WEEK, ComplicationType.SHORT_TEXT
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -158,7 +158,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp2.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.DATA_SOURCE_STEP_COUNT, ComplicationType.SHORT_TEXT
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -174,7 +174,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp3.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.DATA_SOURCE_STEP_COUNT, ComplicationType.SHORT_TEXT
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -190,7 +190,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp4.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.DATA_SOURCE_STEP_COUNT, ComplicationType.SHORT_TEXT
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
         ),
         bounds = ComplicationSlotBounds(
             RectF(
@@ -206,7 +206,7 @@ fun createComplicationSlotManager(
         canvasComplicationFactory = defaultCanvasComplicationFactory,
         supportedTypes = ComplicationConfig.Comp5.supportedTypes,
         defaultDataSourcePolicy = DefaultComplicationDataSourcePolicy(
-            SystemDataSources.DATA_SOURCE_STEP_COUNT, ComplicationType.SHORT_TEXT
+            SystemDataSources.NO_DATA_SOURCE, ComplicationType.NOT_CONFIGURED
         ),
         bounds = ComplicationSlotBounds(
             RectF(
