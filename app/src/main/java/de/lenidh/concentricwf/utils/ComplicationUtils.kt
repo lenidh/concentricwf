@@ -86,7 +86,6 @@ internal const val COMPLICATION_5_ID = 104
 sealed class ComplicationConfig(val id: Int, val supportedTypes: List<ComplicationType>) {
     data object Comp1 : ComplicationConfig(
         COMPLICATION_1_ID, listOf(
-            ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
         )
@@ -94,7 +93,6 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
 
     data object Comp2 : ComplicationConfig(
         COMPLICATION_2_ID, listOf(
-            ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
         )
@@ -102,7 +100,6 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
 
     data object Comp3 : ComplicationConfig(
         COMPLICATION_3_ID, listOf(
-            ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
         )
@@ -110,7 +107,6 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
 
     data object Comp4 : ComplicationConfig(
         COMPLICATION_4_ID, listOf(
-            ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
         )
@@ -118,7 +114,6 @@ sealed class ComplicationConfig(val id: Int, val supportedTypes: List<Complicati
 
     data object Comp5 : ComplicationConfig(
         COMPLICATION_5_ID, listOf(
-            ComplicationType.SMALL_IMAGE,
             ComplicationType.SHORT_TEXT,
             ComplicationType.MONOCHROMATIC_IMAGE,
         )
