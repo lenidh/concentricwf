@@ -66,7 +66,6 @@ dependencies {
     implementation("androidx.wear.watchface:watchface-complications-rendering:1.2.1")
     implementation("androidx.wear.watchface:watchface-editor:1.2.1")
     implementation("androidx.wear.watchface:watchface-style:1.2.1")
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation("com.google.android.gms:play-services-oss-licenses:17.0.1")
     implementation("com.google.android.material:material:1.11.0")
 
