@@ -68,6 +68,7 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListAnchorType
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
@@ -75,6 +76,7 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.HorizontalPageIndicator
+import androidx.wear.compose.material.ListHeader
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PageIndicatorState
 import androidx.wear.compose.material.PositionIndicator
@@ -774,10 +776,13 @@ private fun LicenseTextScreen(licenseInfo: LicenseInfo) {
         ScalingLazyColumn(
             contentPadding = PaddingValues(top = 40.dp, bottom = 100.dp),
             state = listState,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            anchorType = ScalingLazyListAnchorType.ItemStart,
         ) {
             item {
-                Text(stringResource(id = licenseInfo.subjectId))
+                ListHeader {
+                    Text(stringResource(id = licenseInfo.subjectId))
+                }
             }
             item {
                 Text(
@@ -799,7 +804,9 @@ private fun ColorPreviewIcon(rgbaString: String) {
 
 @Composable
 private fun Circle(color: Color, modifier: Modifier = Modifier) {
-    Box(modifier = modifier.clip(CircleShape).background(color))
+    Box(modifier = modifier
+        .clip(CircleShape)
+        .background(color))
 }
 
 private class LicenseTextScreenParameterProvider : PreviewParameterProvider<Int> {
