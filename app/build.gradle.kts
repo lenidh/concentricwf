@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId = "de.lenidh.concentricwf"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 33
         versionCode = 2
         versionName = "1.0"
         vectorDrawables {
