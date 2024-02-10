@@ -744,7 +744,7 @@ private fun InfoScreen(
                     onClick = {
                         val msgIntent = Intent(Intent.ACTION_VIEW)
                             .addCategory(Intent.CATEGORY_BROWSABLE)
-                            .setData(Uri.parse("https://raw.githubusercontent.com/lenidh/concentricwf/v${BuildConfig.VERSION_NAME}/app/src/main/assets/open_source_licenses.html"))
+                            .setData(Uri.parse("https://raw.githubusercontent.com/lenidh/concentricwf/v${BuildConfig.VERSION_NAME}/app/src/main/assets/open_source_licenses.txt"))
                         val remoteActivityHelper = RemoteActivityHelper(context)
                         remoteActivityHelper.startRemoteActivity(msgIntent)
 
