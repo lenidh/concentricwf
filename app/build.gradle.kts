@@ -1,7 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.android.gms.oss-licenses-plugin")
+    id("com.jaredsburrows.license") version "0.9.7"
 }
 
 android {
@@ -12,8 +12,8 @@ android {
         applicationId = "de.lenidh.concentricwf"
         minSdk = 30
         targetSdk = 33
-        versionCode = 2
-        versionName = "1.0"
+        versionCode = 3
+        versionName = "1.1.0"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -66,8 +66,9 @@ dependencies {
     implementation("androidx.wear.watchface:watchface-complications-rendering:1.2.1")
     implementation("androidx.wear.watchface:watchface-editor:1.2.1")
     implementation("androidx.wear.watchface:watchface-style:1.2.1")
-    implementation("com.google.android.gms:play-services-oss-licenses:17.0.1")
     implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.wear:wear:1.3.0")
+    implementation("androidx.wear:wear-remote-interactions:1.0.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
