@@ -21,6 +21,7 @@ package de.lenidh.concentricwf.editor
 import android.content.Intent
 import android.content.res.Resources
 import android.graphics.Color.parseColor
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -72,6 +73,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.wear.activity.ConfirmationActivity
 import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
 import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
@@ -97,8 +99,8 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.compose.ui.tooling.preview.WearPreviewLargeRound
+import androidx.wear.remote.interactions.RemoteActivityHelper
 import androidx.wear.watchface.style.UserStyleSetting
-import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import de.lenidh.concentricwf.BuildConfig
 import de.lenidh.concentricwf.R
 import de.lenidh.concentricwf.data.editor.LicenseInfo
@@ -554,7 +556,10 @@ private fun ListOptionPicker(
                 }
                 .focusRequester(focusRequester)
                 .focusable(),
-            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState, snapOffset = 0.dp)
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(
+                state = listState,
+                snapOffset = 0.dp
+            )
         ) {
             options.map {
                 item {
@@ -737,7 +742,21 @@ private fun InfoScreen(
                         .fillMaxWidth()
                         .padding(24.dp, 0.dp),
                     onClick = {
-                        context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
+                        val msgIntent = Intent(Intent.ACTION_VIEW)
+                            .addCategory(Intent.CATEGORY_BROWSABLE)
+                            .setData(Uri.parse("https://raw.githubusercontent.com/lenidh/concentricwf/v${BuildConfig.VERSION_NAME}/app/src/main/assets/open_source_licenses.html"))
+                        val remoteActivityHelper = RemoteActivityHelper(context)
+                        remoteActivityHelper.startRemoteActivity(msgIntent)
+
+
+                        val intent = Intent(context, ConfirmationActivity::class.java).apply {
+                            putExtra(
+                                ConfirmationActivity.EXTRA_ANIMATION_TYPE,
+                                ConfirmationActivity.OPEN_ON_PHONE_ANIMATION
+                            )
+                            putExtra(ConfirmationActivity.EXTRA_MESSAGE, "Sent to phone")
+                        }
+                        context.startActivity(intent)
                     },
                     label = {
                         Text(stringResource(R.string.license_info_tp_modules))
@@ -783,7 +802,10 @@ private fun LicenseListScreen(
                 }
                 .focusRequester(focusRequester)
                 .focusable(),
-            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState, snapOffset = 0.dp)
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(
+                state = listState,
+                snapOffset = 0.dp
+            )
         ) {
             TP_LICENSE_INFOS.withIndex().map { (i, info) ->
                 item {
