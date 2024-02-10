@@ -28,6 +28,9 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
@@ -48,12 +51,15 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.res.stringResource
@@ -66,10 +72,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
 import androidx.wear.compose.foundation.lazy.AutoCenteringParams
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumnDefaults
 import androidx.wear.compose.foundation.lazy.ScalingLazyListAnchorType
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
@@ -508,6 +517,7 @@ private fun ListOptionPickerPreview() {
         onSelected = {})
 }
 
+@OptIn(ExperimentalWearFoundationApi::class)
 @Composable
 private fun ListOptionPicker(
     options: List<UserStyleSetting.ListUserStyleSetting.ListOption>,
@@ -528,10 +538,23 @@ private fun ListOptionPicker(
             Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
+        val focusRequester = rememberActiveFocusRequester()
+        val coroutineScope = rememberCoroutineScope()
         ScalingLazyColumn(
             contentPadding = PaddingValues(top = 40.dp),
             state = listState,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .onRotaryScrollEvent {
+                    coroutineScope.launch {
+                        listState.scrollBy(it.verticalScrollPixels)
+                        listState.animateScrollBy(0F)
+                    }
+                    true
+                }
+                .focusRequester(focusRequester)
+                .focusable(),
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState, snapOffset = 0.dp)
         ) {
             options.map {
                 item {
@@ -567,13 +590,16 @@ private fun ColorPicker(
 ) {
     ListOptionPicker(
         options = options,
-        labelProvider = { optionId -> {
-            val option = WatchFaceUserStyle.getColorOption(optionId)
-            val text = option?.let { stringResource(it.nameId) } ?: "???"
-            Text(text)
-        } },
+        labelProvider = { optionId ->
+            {
+                val option = WatchFaceUserStyle.getColorOption(optionId)
+                val text = option?.let { stringResource(it.nameId) } ?: "???"
+                Text(text)
+            }
+        },
         iconProvider = { optionId -> { ColorPreviewIcon(optionId) } },
-        onSelected = onSelected)
+        onSelected = onSelected
+    )
 }
 
 @WearPreviewLargeRound
@@ -592,20 +618,28 @@ private fun FontPicker(
 ) {
     ListOptionPicker(
         options = options,
-        labelProvider = { optionId -> {
-            val option = WatchFaceUserStyle.getFontOption(optionId)
-            val text = option?.let { stringResource(it.nameId) } ?: "???"
-            val font = option?.let { FontFamily(LocalContext.current.resources.getFont(option.fontId)) }
-            Text(text, fontFamily = font)
-        } },
-        secondaryLabelProvider = { optionId -> {
-            val option = WatchFaceUserStyle.getFontOption(optionId)
-            val font = option?.let { FontFamily(LocalContext.current.resources.getFont(option.fontId)) }
-            Text("0 1 2 3 4 5 6 7 8 9", fontFamily = font)
-        } },
-        onSelected = onSelected)
+        labelProvider = { optionId ->
+            {
+                val option = WatchFaceUserStyle.getFontOption(optionId)
+                val text = option?.let { stringResource(it.nameId) } ?: "???"
+                val font =
+                    option?.let { FontFamily(LocalContext.current.resources.getFont(option.fontId)) }
+                Text(text, fontFamily = font)
+            }
+        },
+        secondaryLabelProvider = { optionId ->
+            {
+                val option = WatchFaceUserStyle.getFontOption(optionId)
+                val font =
+                    option?.let { FontFamily(LocalContext.current.resources.getFont(option.fontId)) }
+                Text("0 1 2 3 4 5 6 7 8 9", fontFamily = font)
+            }
+        },
+        onSelected = onSelected
+    )
 }
 
+@OptIn(ExperimentalWearFoundationApi::class)
 @WearPreviewLargeRound
 @Composable
 private fun InfoScreen(
@@ -624,9 +658,21 @@ private fun InfoScreen(
             Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
+        val focusRequester = rememberActiveFocusRequester()
+        val coroutineScope = rememberCoroutineScope()
         ScalingLazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onRotaryScrollEvent {
+                    coroutineScope.launch {
+                        listState.scrollBy(it.verticalScrollPixels)
+                        listState.animateScrollBy(0F)
+                    }
+                    true
+                }
+                .focusRequester(focusRequester)
+                .focusable(),
             autoCentering = AutoCenteringParams(1)
         ) {
             item {
@@ -651,7 +697,6 @@ private fun InfoScreen(
                 )
             }
             item {
-                val context = LocalContext.current
                 Chip(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -704,6 +749,7 @@ private fun InfoScreen(
     }
 }
 
+@OptIn(ExperimentalWearFoundationApi::class)
 @WearPreviewLargeRound
 @Composable
 private fun LicenseListScreen(
@@ -721,10 +767,23 @@ private fun LicenseListScreen(
             Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
+        val focusRequester = rememberActiveFocusRequester()
+        val coroutineScope = rememberCoroutineScope()
         ScalingLazyColumn(
             contentPadding = PaddingValues(top = 40.dp),
             state = listState,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .onRotaryScrollEvent {
+                    coroutineScope.launch {
+                        listState.scrollBy(it.verticalScrollPixels)
+                        listState.animateScrollBy(0F)
+                    }
+                    true
+                }
+                .focusRequester(focusRequester)
+                .focusable(),
+            flingBehavior = ScalingLazyColumnDefaults.snapFlingBehavior(state = listState, snapOffset = 0.dp)
         ) {
             TP_LICENSE_INFOS.withIndex().map { (i, info) ->
                 item {
@@ -759,6 +818,7 @@ private fun LicenseTextScreenPreview() {
     LicenseTextScreen(SELF_LICENSE_INFO)
 }
 
+@OptIn(ExperimentalWearFoundationApi::class)
 @Composable
 private fun LicenseTextScreen(licenseInfo: LicenseInfo) {
     val listState = rememberScalingLazyListState()
@@ -773,10 +833,22 @@ private fun LicenseTextScreen(licenseInfo: LicenseInfo) {
             Vignette(vignettePosition = VignettePosition.TopAndBottom)
         },
     ) {
+        val focusRequester = rememberActiveFocusRequester()
+        val coroutineScope = rememberCoroutineScope()
         ScalingLazyColumn(
             contentPadding = PaddingValues(top = 40.dp, bottom = 100.dp),
             state = listState,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onRotaryScrollEvent {
+                    coroutineScope.launch {
+                        listState.scrollBy(it.verticalScrollPixels)
+                        listState.animateScrollBy(0F)
+                    }
+                    true
+                }
+                .focusRequester(focusRequester)
+                .focusable(),
             anchorType = ScalingLazyListAnchorType.ItemStart,
         ) {
             item {
@@ -804,9 +876,11 @@ private fun ColorPreviewIcon(rgbaString: String) {
 
 @Composable
 private fun Circle(color: Color, modifier: Modifier = Modifier) {
-    Box(modifier = modifier
-        .clip(CircleShape)
-        .background(color))
+    Box(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(color)
+    )
 }
 
 private class LicenseTextScreenParameterProvider : PreviewParameterProvider<Int> {
