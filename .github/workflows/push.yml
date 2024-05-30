@@ -18,21 +18,19 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Restore Gradle cache
-        uses: actions/cache/restore@v4
-        id: restore-gradle-cache
+        uses: actions/cache/restore@v2
+        id: restore-build-cache
         with:
           key: cache-build-${{ github.repository }}
           path: |
             .gradle/
             app/build/
-      - run: ls -lahR
       - name: Build with Gradle
         run: ./gradlew build
-      - run: ls -lahR
       - name: Save Gradle cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v2
         with:
-          key: cache-build-${{ github.repository }}
+          key: ${{ steps.restore-build-cache.outputs.cache-primary-key }}
           path: |
             .gradle/
             app/build/
