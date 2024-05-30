@@ -1,0 +1,41 @@
+name: Push
+
+on:
+  push:
+    branches-ignore:
+      - 'wip/**'
+  pull_request:
+    types: [opened, reopened, edited]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+      - name: Restore Gradle cache
+        uses: actions/cache/restore@v4
+        id: restore-build-cache
+        with:
+          key: cache-build-${{ github.repository }}
+          path: |
+            .gradle/
+            app/build/
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Save Gradle cache
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ steps.restore-build-cache.outputs.cache-primary-key }}
+          path: |
+            .gradle/
+            app/build/
+
