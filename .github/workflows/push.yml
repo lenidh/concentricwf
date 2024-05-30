@@ -1,0 +1,37 @@
+name: Push
+
+on:
+  push:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: action/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+      - name: Restore Gradle cache
+        uses: actions/cache/restore@v4
+        id: restore-gradle-cache
+        with:
+          key: cache-gradle-${{ github.repository }}
+          path: |
+            ${{ env.HOME }}/.gradle
+      - run: ls -lahR
+      - name: Build with Gradle
+        run: ./gradlew build
+      - run: ls -lahR
+      - name: Save Gradle cache
+        uses: actions/cache/save@v4
+        with:
+          key: cache-gradle-${{ github.repository }}
+          path: |
+            ${{ env.HOME }}/.gradle
+
