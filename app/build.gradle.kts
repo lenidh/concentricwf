@@ -57,24 +57,24 @@ licenseReport {
 }
 
 dependencies {
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.activity:activity-compose:1.10.0")
     implementation(platform("androidx.compose:compose-bom:2023.03.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.wear.compose:compose-foundation:1.3.0")
-    implementation("androidx.wear.compose:compose-material:1.3.0")
-    implementation("androidx.wear.compose:compose-navigation:1.3.0")
-    implementation("androidx.wear.compose:compose-ui-tooling:1.3.0")
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0")
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("androidx.wear.compose:compose-foundation:1.4.0")
+    implementation("androidx.wear.compose:compose-material:1.4.0")
+    implementation("androidx.wear.compose:compose-navigation:1.4.0")
+    implementation("androidx.wear.compose:compose-ui-tooling:1.4.0")
     implementation("androidx.wear.watchface:watchface:1.2.1")
     implementation("androidx.wear.watchface:watchface-complications-data:1.2.1")
     implementation("androidx.wear.watchface:watchface-complications-rendering:1.2.1")
     implementation("androidx.wear.watchface:watchface-editor:1.2.1")
     implementation("androidx.wear.watchface:watchface-style:1.2.1")
-    implementation("com.google.android.material:material:1.11.0")
+    implementation("com.google.android.material:material:1.12.0")
     implementation("androidx.wear:wear:1.3.0")
-    implementation("androidx.wear:wear-remote-interactions:1.0.0")
+    implementation("androidx.wear:wear-remote-interactions:1.1.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 
