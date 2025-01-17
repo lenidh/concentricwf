@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "de.lenidh.concentricwf"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "de.lenidh.concentricwf"
         minSdk = 30
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 5
         versionName = "1.2.1"
         vectorDrawables {
@@ -58,7 +58,7 @@ licenseReport {
 
 dependencies {
     implementation("androidx.activity:activity-compose:1.10.0")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation(platform("androidx.compose:compose-bom:2025.01.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0")
@@ -80,5 +80,5 @@ dependencies {
 
     debugRuntimeOnly("androidx.compose.ui:ui-test-manifest")
 
-    androidTestImplementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    androidTestImplementation(platform("androidx.compose:compose-bom:2025.01.00"))
 }
